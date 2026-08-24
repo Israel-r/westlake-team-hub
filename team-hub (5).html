@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --field-dark:#071B3B;   /* Westlake navy */
+    --field:#0F2E57;        /* Westlake navy, lighter */
+    --field-line:#2A4E7C;   /* navy line/divider */
+    --chalk:#F6F7F9;        /* silver-white */
+    --chalk-dim:#E3E7EC;    /* silver */
+    --gold:#FFC72C;         /* Vegas gold */
+    --gold-dim:#E0A80F;
+    --rust:#2D6CA6;         /* Carolina blue accent */
+    --ink:#10171F;
+    --ink-soft:#52606D;
+    --line-on-dark:rgba(255,255,255,0.14);
+    --error:#D64545;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--chalk);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+  }
+  h1,h2,h3,.display{
+    font-family:'Anton',sans-serif;
+    font-weight:400;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+  }
+  .mono{font-family:'Space Mono',monospace;}
+  a{color:inherit;}
+  button{font-family:'Inter',sans-serif;cursor:pointer;}
+  #app{min-height:100vh;display:flex;flex-direction:column;}
+
+  /* ---------- GATE / SETUP ---------- */
+  .gate-wrap{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:
+      radial-gradient(circle at 50% 0%, var(--field) 0%, var(--field-dark) 65%);
+    padding:24px;
+  }
+  .gate-card{
+    background:var(--chalk);
+    border-radius:4px;
+    width:100%;max-width:420px;
+    padding:36px 32px 32px;
+    box-shadow:0 30px 60px rgba(0,0,0,0.4);
+    position:relative;
+    overflow:hidden;
+  }
+  .gate-card::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:8px;
+    background:repeating-linear-gradient(90deg,var(--gold) 0 18px, transparent 18px 26px);
+  }
+  .gate-eyebrow{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:2px;color:var(--rust);text-transform:uppercase;margin-bottom:6px;}
+  .gate-card h1{font-size:34px;margin:0 0 18px;color:var(--field-dark);}
+  .field-group{margin-bottom:14px;}
+  .field-group label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ink-soft);margin-bottom:5px;}
+  .field-group input, .field-group textarea, .field-group select{
+    width:100%;padding:11px 12px;border:2px solid #D7DCE2;border-radius:3px;
+    font-family:'Inter',sans-serif;font-size:15px;background:#fff;color:var(--ink);
+  }
+  .field-group input:focus, .field-group textarea:focus, .field-group select:focus{outline:none;border-color:var(--field);}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:12px 20px;border-radius:3px;border:none;font-weight:700;
+    text-transform:uppercase;letter-spacing:1px;font-size:13px;
+    transition:transform .12s ease, background .15s ease;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:var(--rust);color:#fff;width:100%;}
+  .btn-primary:hover{background:#a83a0c;}
+  .btn-gold{background:var(--gold);color:var(--field-dark);}
+  .btn-gold:hover{background:var(--gold-dim);}
+  .btn-outline{background:transparent;border:2px solid var(--field-line);color:var(--chalk);}
+  .btn-outline:hover{background:var(--line-on-dark);}
+  .btn-ghost{background:transparent;color:var(--ink-soft);border:2px solid #D7DCE2;}
+  .btn-ghost:hover{border-color:var(--ink-soft);}
+  .btn-small{padding:7px 12px;font-size:11px;}
+  .gate-error{color:var(--error);font-size:13px;font-weight:600;margin-bottom:12px;}
+  .gate-foot{margin-top:16px;font-size:12px;color:var(--ink-soft);text-align:center;}
+
+  /* ---------- NAV / YARD LINE BAR ---------- */
+  header.top{
+    background:var(--field-dark);
+    color:var(--chalk);
+    position:sticky;top:0;z-index:40;
+    box-shadow:0 2px 12px rgba(0,0,0,0.25);
+  }
+  .top-bar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 22px;max-width:1180px;margin:0 auto;gap:16px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .dot{width:10px;height:10px;background:var(--gold);border-radius:50%;}
+  .brand h1{font-size:20px;margin:0;color:var(--chalk);letter-spacing:1px;}
+  .top-actions{display:flex;gap:10px;align-items:center;}
+  .admin-pill{
+    font-family:'Space Mono',monospace;font-size:11px;background:var(--gold);color:var(--field-dark);
+    padding:5px 10px;border-radius:20px;font-weight:700;letter-spacing:0.5px;
+  }
+  nav.yardline{
+    background:var(--field);
+    border-top:1px solid var(--line-on-dark);
+    border-bottom:1px solid var(--line-on-dark);
+    overflow-x:auto;
+  }
+  .yardline-inner{
+    max-width:1180px;margin:0 auto;display:flex;
+  }
+  .yard-tab{
+    flex:1;min-width:110px;text-align:center;padding:13px 8px 11px;
+    font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1.5px;
+    text-transform:uppercase;color:#9FB3C8;background:none;border:none;
+    border-right:1px solid var(--field-line);
+    border-bottom:3px solid transparent;position:relative;font-weight:700;
+  }
+  .yard-tab:last-child{border-right:none;}
+  .yard-tab:hover{color:var(--chalk);}
+  .yard-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+  .yard-tab.active::after{
+    content:"\1F3C8";position:absolute;top:-2px;left:50%;transform:translateX(-50%) scale(0.8);
+    font-size:14px;
+  }
+
+  main{flex:1;width:100%;max-width:1180px;margin:0 auto;padding:28px 22px 70px;}
+
+  /* ---------- SCOREBOARD HERO ---------- */
+  .scoreboard{
+    background:var(--field-dark);
+    border-radius:6px;
+    padding:26px 26px 22px;
+    color:var(--chalk);
+    display:grid;grid-template-columns:1.3fr 1fr;gap:24px;
+    margin-bottom:26px;
+    box-shadow:0 20px 50px rgba(13,31,23,0.35);
+    position:relative;
+    overflow:hidden;
+  }
+  .scoreboard::before{
+    content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient(0deg, transparent 0 3px, rgba(255,255,255,0.02) 3px 4px);
+    pointer-events:none;
+  }
+  @media (max-width:720px){.scoreboard{grid-template-columns:1fr;}}
+  .sb-eyebrow{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;}
+  .sb-team{font-size:38px;margin:4px 0 14px;}
+  .sb-tiles{display:flex;gap:10px;flex-wrap:wrap;}
+  .sb-tile{background:rgba(255,255,255,0.06);border:1px solid var(--line-on-dark);border-radius:4px;padding:10px 16px;min-width:90px;}
+  .sb-tile .k{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1.5px;color:#9fb3a8;text-transform:uppercase;}
+  .sb-tile .v{font-family:'Anton',sans-serif;font-size:24px;color:var(--chalk);}
+  .sb-next{background:rgba(0,0,0,0.25);border-radius:4px;padding:16px 18px;display:flex;flex-direction:column;justify-content:center;}
+  .sb-next-item.secondary{padding-top:12px;border-top:1px solid var(--line-on-dark);}
+  .sb-next .k{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;}
+  .sb-next-item.secondary .k{font-size:10px;margin-bottom:4px;}
+  .sb-next .opp{font-size:24px;margin:0 0 4px;}
+  .sb-next-item.secondary .opp{font-size:17px;margin:0 0 3px;}
+  .sb-next .meta{font-size:13px;color:#c7d6cd;font-family:'Space Mono',monospace;}
+  .sb-next-item.secondary .meta{font-size:11.5px;}
+  .sb-empty{color:#9fb3a8;font-size:14px;}
+
+  /* ---------- SECTIONS/CARDS ---------- */
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;margin:6px 0 14px;gap:12px;flex-wrap:wrap;}
+  .section-head h2{font-size:24px;color:var(--field-dark);margin:0;}
+  .section-head .sub{font-family:'Space Mono',monospace;font-size:12px;color:var(--ink-soft);}
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(230px,1fr));gap:14px;margin-bottom:32px;}
+  .link-card{
+    background:#fff;border:2px solid #E3E7EC;border-radius:4px;padding:18px;
+    display:flex;flex-direction:column;gap:8px;text-decoration:none;transition:border-color .15s;
+  }
+  .link-card:hover{border-color:var(--gold);}
+  .link-card .lc-label{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1.5px;color:var(--rust);text-transform:uppercase;}
+  .link-card .lc-title{font-family:'Anton',sans-serif;font-size:18px;color:var(--field-dark);text-transform:uppercase;}
+  .link-card .lc-arrow{align-self:flex-end;font-size:18px;color:var(--gold);}
+
+  .pos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:10px;}
+  @media (max-width:820px){.pos-grid{grid-template-columns:1fr;}}
+  .pos-card{background:#fff;border:2px solid #E3E7EC;border-radius:4px;padding:18px;text-decoration:none;display:block;cursor:pointer;}
+  .pos-card:hover{border-color:var(--field);}
+  .pos-card .pc-eyebrow{font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:1px;}
+  .pos-card h3{margin:4px 0 8px;font-size:20px;color:var(--field-dark);}
+  .pos-card p{margin:0;font-size:13px;color:var(--ink-soft);line-height:1.5;}
+
+  /* ---------- CALENDAR ---------- */
+  .cal-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+  .cal-month{font-size:22px;color:var(--field-dark);min-width:200px;}
+  .cal-nav{display:flex;gap:8px;}
+  .cal-nav button{background:var(--field);color:#fff;border:none;border-radius:3px;width:34px;height:34px;font-size:16px;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:26px;}
+  .cal-dow{font-family:'Space Mono',monospace;font-size:11px;text-align:center;color:var(--ink-soft);padding-bottom:4px;text-transform:uppercase;}
+  .cal-cell{
+    min-height:82px;background:#fff;border:1px solid #E3E7EC;border-radius:3px;padding:6px;
+    display:flex;flex-direction:column;gap:3px;font-size:12px;
+  }
+  .cal-cell.empty{background:transparent;border:none;}
+  .cal-cell.today{border:2px solid var(--gold);}
+  .cal-daynum{font-family:'Space Mono',monospace;font-weight:700;color:var(--ink-soft);}
+  .cal-evt{
+    font-size:10.5px;padding:2px 5px;border-radius:2px;color:#fff;line-height:1.3;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;
+  }
+  .cal-evt.game{background:var(--gold);color:var(--field-dark);}
+  .cal-evt.practice{background:var(--field);}
+  .upcoming-list{display:flex;flex-direction:column;gap:8px;}
+  .upcoming-row{
+    display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #E3E7EC;border-radius:4px;padding:12px 14px;
+  }
+  .upcoming-date{
+    font-family:'Space Mono',monospace;text-align:center;min-width:56px;background:var(--field-dark);color:#fff;border-radius:3px;padding:6px 4px;
+  }
+  .upcoming-date .d{font-family:'Anton',sans-serif;font-size:18px;line-height:1;}
+  .upcoming-date .m{font-size:10px;letter-spacing:1px;text-transform:uppercase;}
+  .upcoming-info{flex:1;}
+  .upcoming-info .t{font-weight:700;color:var(--field-dark);}
+  .upcoming-info .s{font-size:12px;color:var(--ink-soft);font-family:'Space Mono',monospace;}
+  .tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:2px 7px;border-radius:10px;color:#fff;}
+  .tag.game{background:var(--gold);color:var(--field-dark);}
+  .tag.practice{background:var(--field);}
+  .row-actions{display:flex;gap:6px;}
+  .icon-btn{background:none;border:none;font-size:15px;color:var(--ink-soft);padding:4px;border-radius:3px;}
+  .icon-btn:hover{color:var(--rust);background:#EAF1F8;}
+
+  /* ---------- POSITION PAGE ---------- */
+  .week-card{background:#fff;border:2px solid #E3E7EC;border-radius:5px;padding:22px 24px;margin-bottom:20px;}
+  .week-card .wk-eyebrow{font-family:'Space Mono',monospace;font-size:11px;color:var(--rust);letter-spacing:1.5px;text-transform:uppercase;}
+  .week-card h2{margin:2px 0 16px;font-size:26px;color:var(--field-dark);}
+  .wk-block{margin-bottom:16px;}
+  .wk-block h4{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px;}
+  .wk-block p, .wk-block li{font-size:14.5px;line-height:1.6;color:var(--ink);}
+  .wk-block ul{margin:0;padding-left:18px;}
+  .video-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+  .video-box{background:var(--field-dark);border-radius:4px;overflow:hidden;}
+  .video-box iframe, .video-box video{width:100%;aspect-ratio:16/9;border:none;display:block;}
+  .image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;}
+  .image-grid a{display:block;border-radius:4px;overflow:hidden;border:1px solid #E3E7EC;}
+  .image-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;transition:transform .15s;}
+  .image-grid a:hover img{transform:scale(1.04);}
+  .img-broken{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;font-size:12px;color:var(--ink-soft);background:var(--chalk-dim);}
+  .video-title{color:var(--chalk);font-size:12px;padding:8px 10px;font-family:'Space Mono',monospace;}
+  .plink{display:inline-flex;align-items:center;gap:6px;background:var(--chalk-dim);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:600;margin:0 6px 6px 0;text-decoration:none;color:var(--field-dark);}
+  .plink:hover{background:var(--gold);}
+  .archive-toggle{background:none;border:none;color:var(--ink-soft);font-size:13px;font-weight:700;text-decoration:underline;padding:0;margin-bottom:14px;}
+  .archive-item{border-left:3px solid #E3E7EC;padding:10px 0 10px 14px;margin-bottom:8px;}
+  .archive-item summary{cursor:pointer;font-weight:700;color:var(--field-dark);}
+
+  /* ---------- SCOUTING REPORT ---------- */
+  .scout-subtabs{display:flex;gap:8px;margin:0 0 18px;flex-wrap:wrap;}
+  .scout-subtab{
+    padding:9px 18px;border-radius:20px;border:2px solid #D7DCE2;background:#fff;
+    font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase;
+    font-weight:700;color:var(--ink-soft);
+  }
+  .scout-subtab.active{background:var(--field-dark);border-color:var(--field-dark);color:var(--gold);}
+  .stat-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px;}
+  .stat-card{background:var(--chalk-dim);border-left:4px solid var(--gold);border-radius:3px;padding:12px 14px;}
+  .stat-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px;}
+  .stat-val{font-size:19px;font-weight:800;color:var(--field-dark);}
+  .stat-sub{font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-soft);margin-top:2px;}
+  .bar-row{display:grid;grid-template-columns:150px 1fr 90px;align-items:center;gap:10px;margin-bottom:8px;}
+  .bar-label{font-size:13px;font-weight:700;color:var(--field-dark);}
+  .bar-track{background:var(--chalk-dim);border-radius:3px;height:16px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:3px;}
+  .bar-value{font-family:'Space Mono',monospace;font-size:12px;color:var(--ink-soft);}
+  .bar-pct{color:#9AA7B4;}
+  .stacked-row{display:grid;grid-template-columns:80px 1fr 34px;align-items:center;gap:10px;margin-bottom:7px;}
+  .stacked-label{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--field-dark);}
+  .stacked-track{display:flex;height:16px;border-radius:3px;overflow:hidden;background:var(--chalk-dim);}
+  .stacked-seg{height:100%;}
+  .stacked-total{font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-soft);text-align:right;}
+  .scout-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;}
+  .scout-legend-item{font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-soft);display:inline-flex;align-items:center;gap:5px;}
+  .scout-legend-dot{width:9px;height:9px;border-radius:2px;display:inline-block;}
+  .keys-list{margin:0;padding-left:18px;}
+  .keys-list li{font-size:14.5px;line-height:1.7;color:var(--ink);margin-bottom:4px;}
+  .rp-grid{display:grid;grid-template-columns:100px 1fr 1fr;gap:8px;align-items:center;margin-bottom:6px;}
+  .rp-head{font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--ink-soft);}
+  .rp-down{font-size:13px;font-weight:700;color:var(--field-dark);}
+  @media (max-width:560px){
+    .bar-row{grid-template-columns:100px 1fr 70px;}
+    .stat-strip{grid-template-columns:repeat(2,1fr);}
+  }
+  .empty-state{background:#fff;border:2px dashed #D7DCE2;border-radius:5px;padding:34px;text-align:center;color:var(--ink-soft);}
+
+  .standings-table{width:100%;border-collapse:collapse;background:#fff;border-radius:5px;overflow:hidden;font-size:13.5px;min-width:560px;}
+  .standings-table th{background:var(--field-dark);color:var(--chalk);text-align:left;padding:10px 12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;}
+  .standings-table td{padding:9px 12px;border-bottom:1px solid #E3E7EC;color:var(--ink);}
+  .standings-table tr:last-child td{border-bottom:none;}
+  .standings-table tr.us{background:#FFF6DE;font-weight:700;}
+  .standings-table tr.us td:first-child{border-left:3px solid var(--gold);}
+
+  /* ---------- MODAL ---------- */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(13,31,23,0.65);display:flex;align-items:flex-start;justify-content:center;
+    padding:40px 16px;z-index:100;overflow-y:auto;
+  }
+  .modal{background:var(--chalk);border-radius:6px;width:100%;max-width:560px;padding:26px 26px 22px;box-shadow:0 30px 60px rgba(0,0,0,0.4);}
+  .modal h3{margin:0 0 16px;font-size:22px;color:var(--field-dark);}
+  .modal-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media (max-width:480px){.two-col{grid-template-columns:1fr;}}
+  .field-group textarea{min-height:80px;resize:vertical;font-family:'Inter',sans-serif;}
+  .close-x{position:absolute;top:14px;right:16px;background:none;border:none;font-size:20px;color:var(--ink-soft);}
+  .rel{position:relative;}
+  .repeat-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center;}
+  .repeat-row input{padding:9px 10px;}
+  .add-row-btn{background:none;border:2px dashed #D7DCE2;border-radius:3px;padding:8px 12px;font-size:13px;font-weight:700;color:var(--ink-soft);width:100%;}
+
+  .helptext{font-size:12px;color:var(--ink-soft);margin-top:-6px;margin-bottom:10px;}
+  footer.foot{text-align:center;padding:26px;color:var(--ink-soft);font-size:12px;font-family:'Space Mono',monospace;}
+  .toast{
+    position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--field-dark);color:#fff;
+    padding:12px 22px;border-radius:30px;font-size:13px;font-weight:600;z-index:200;box-shadow:0 10px 30px rgba(0,0,0,0.3);
+  }
+  .loading-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--field-dark);color:var(--gold);font-family:'Space Mono',monospace;letter-spacing:2px;}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading-wrap">LOADING TEAM HUB…</div></div>
+
+<!-- ============================ FIREBASE SETUP ============================ -->
+<!-- 1) Create a free Firebase project at https://console.firebase.google.com
+     2) Add a Web App inside it, copy the config object it gives you, and paste
+        the values below in place of the "PASTE_..." placeholders.
+     3) In the Firebase console, go to Build > Firestore Database > Create database
+        (start in "test mode" is fine, or use the rules noted in the chat reply).
+     That's it — no server, no accounts required for your team to use the site. -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
+  import { getFirestore, doc, getDoc, setDoc, onSnapshot }
+    from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyArMPZBlUvKcCvpHhjEw_a5YooRhQH0lrg",
+    authDomain: "westlake-team-hub.firebaseapp.com",
+    projectId: "westlake-team-hub",
+    storageBucket: "westlake-team-hub.firebasestorage.app",
+    messagingSenderId: "944837495861",
+    appId: "1:944837495861:web:ba72a4397c5e24b823357c"
+  };
+
+  const notConfigured = Object.values(firebaseConfig).some(v => String(v).startsWith('PASTE_'));
+  if(notConfigured){
+    document.getElementById('app').innerHTML = `
+      <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#071B3B;color:#F6F7F9;font-family:sans-serif;padding:30px;text-align:center;">
+        <div style="max-width:520px;">
+          <h1 style="font-size:22px;">Firebase isn't connected yet</h1>
+          <p style="color:#B9C9DA;line-height:1.6;">Open this file's HTML source and replace the placeholder values in <code>firebaseConfig</code> (near the top of &lt;body&gt;) with the config from your Firebase project's web app settings, then reload.</p>
+        </div>
+      </div>`;
+  } else {
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const col = 'teamhub';
+
+    window.__fb = {
+      async getDoc(key){
+        const snap = await getDoc(doc(db, col, key));
+        return snap.exists() ? snap.data().value : null;
+      },
+      async setDoc(key, value){
+        await setDoc(doc(db, col, key), { value, updatedAt: Date.now() });
+        return true;
+      },
+      watch(key, cb){
+        return onSnapshot(doc(db, col, key), (snap)=>{
+          cb(snap.exists() ? snap.data().value : null);
+        }, (err)=> console.error('watch error for', key, err));
+      }
+    };
+    window.boot();
+  }
+</script>
+
+<script>
+/* ============================ STATE ============================ */
+let state = {
+  booted:false,
+  config:null,
+  events:[],
+  standings:null,
+  autoGames:[],
+  content:{offense:null, defense:null, specialteams:null, scoutingOffense:null, scoutingDefense:null},
+  unlocked:false,
+  adminMode:false,
+  view:'home',
+  scoutSubTab:'offense', // which side of the Scouting Report page is showing: their offense vs their defense
+  calCursor: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  modal:null, // {type:'event'|'content'|'adminlogin'|'links'|'standings', payload}
+  toast:null,
+  error:null,
+};
+
+const POSITIONS = {
+  offense:{label:'Offense', eyebrow:'Attack'},
+  defense:{label:'Defense', eyebrow:'Stop the drive'},
+  specialteams:{label:'Special Teams', eyebrow:'Field position'}
+};
+
+// Scouting Report sub-sections. Keys map to state.content.scouting<Unit> and
+// to Firestore docs 'content-scouting<Unit>' via the same posKey convention
+// renderPosition/getCurrentPost/etc already use for offense/defense/specialteams.
+const SCOUT_UNITS = {
+  offense:{label:'Their Offense', posKey:'scoutingOffense', eyebrow:"What we'll see on defense"},
+  defense:{label:'Their Defense', posKey:'scoutingDefense', eyebrow:"What we'll see on offense"}
+};
+
+// The two scouting sub-sections share the exact same storage shape (formations[],
+// calls[], strengthDir[], runPassByDown[]) so all the CRUD/edit-form code below is
+// reused as-is. Only the labels, placeholders, and legend text differ, since scouting
+// an opponent's offense calls for run/pass concepts while scouting their defense calls
+// for fronts, coverage shells, and pressure — this config is the single place that
+// difference lives. colorA/colorB are used positionally (1st vs 2nd bucket) so the
+// same chart code renders both without a run/pass vs coverage/blitz special case.
+const SCOUT_LABELS = {
+  offense:{
+    formationsTitle:'Formation usage', formationsHelp:'Personnel grouping / set they lined up in.',
+    formationsNamePh:'Formation (e.g. DUBS)', formationsCountPh:'Snap count',
+    callsTitle:'Play call frequency', callsHelp:'Named run and pass concepts they called.',
+    callsNamePh:'Call (e.g. RB HANDOFF)',
+    kindA:'Run', kindB:'Pass', kindALabel:'Run concept', kindBLabel:'Pass concept',
+    downChartTitle:'Run / Pass tendency by down',
+    downChartHelp:'Include a "No down logged" count for plays your film source didn\u2019t tag with a down (e.g. some scoring plays) — otherwise your totals here won\u2019t match your overall run/pass count.',
+    downCountLabelA:'Run count', downCountLabelB:'Pass count',
+    splitStatLabel:'Run / Pass split', countNounA:'runs', countNounB:'passes',
+    topFormationStatLabel:'Base formation', topCallStatLabel:'Top play call', sampleStatLabel:'tagged run/pass snaps',
+    strengthTitle:'Strength call vs. play direction, by formation',
+    strengthHelp:'For each formation: how many plays went to the declared strength side, up the middle, or away from strength.',
+    strengthGroupPh:'Formation', strengthALabel:'With strength', strengthBLabel:'Middle', strengthCLabel:'Away from strength',
+    strengthAPh:'With str.', strengthBPh:'Middle', strengthCPh:'Away',
+    keysTitle:'Defensive keys', keysPh:'One adjustment per line',
+  },
+  defense:{
+    formationsTitle:'Defensive fronts & personnel', formationsHelp:'Front / personnel package they lined up in (4-3, 3-4, Nickel, Bear, Dime, etc.).',
+    formationsNamePh:'Front (e.g. 4-3 OVER)', formationsCountPh:'Snap count',
+    callsTitle:'Coverage & pressure frequency', callsHelp:'Named coverage shells and blitz/pressure packages they called.',
+    callsNamePh:'Call (e.g. COVER 3, FIRE ZONE)',
+    kindA:'Coverage', kindB:'Blitz', kindALabel:'Coverage shell', kindBLabel:'Blitz / pressure',
+    downChartTitle:'Coverage / Blitz tendency by down',
+    downChartHelp:'Include a "No down logged" count for snaps your film source didn\u2019t tag with a down — otherwise your totals here won\u2019t match your overall coverage/blitz count.',
+    downCountLabelA:'Coverage count', downCountLabelB:'Blitz count',
+    splitStatLabel:'Coverage / Blitz split', countNounA:'coverage snaps', countNounB:'blitzes',
+    topFormationStatLabel:'Most common front', topCallStatLabel:'Top coverage/blitz call', sampleStatLabel:'tagged coverage/blitz snaps',
+    strengthTitle:'Rotation & pressure vs. our formation strength, by front',
+    strengthHelp:'For each front: how many snaps they rotated coverage or brought pressure toward our declared strength, stayed balanced, or rotated away.',
+    strengthGroupPh:'Front', strengthALabel:'Toward strength', strengthBLabel:'Balanced', strengthCLabel:'Away from strength',
+    strengthAPh:'Toward str.', strengthBPh:'Balanced', strengthCPh:'Away',
+    keysTitle:'Offensive keys', keysPh:'One adjustment per line',
+  }
+};
+function scoutLabelsFor(posKey){ return SCOUT_LABELS[posKey==='scoutingDefense' ? 'defense' : 'offense']; }
+
+function showToast(msg){
+  state.toast = msg;
+  render();
+  setTimeout(()=>{ state.toast=null; render(); }, 2400);
+}
+
+/* ============================ STORAGE HELPERS (Firestore) ============================ */
+async function sGet(key){
+  try{
+    return await window.__fb.getDoc(key);
+  }catch(e){ console.error('read failed for', key, e); return null; }
+}
+async function sSet(key, val){
+  try{
+    await window.__fb.setDoc(key, val);
+    return true;
+  }catch(e){ console.error('write failed for', key, e); return false; }
+}
+
+/* ============================ BOOT ============================ */
+/* ============================ REMEMBER-FOR-TODAY SESSION ============================ */
+// Keeps people from re-entering the password on every reload, but only until
+// midnight — after that it expires and the gate shows again. This uses the
+// browser's own localStorage, which is fine here since this page runs as a
+// normal website (not inside Claude's artifact sandbox).
+const SESSION_KEY = 'teamhub_session_v1';
+function endOfTodayMs(){
+  const d = new Date();
+  d.setHours(23,59,59,999);
+  return d.getTime();
+}
+function saveSession(unlocked, adminMode){
+  try{
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ unlocked, adminMode, expiresAt: endOfTodayMs() }));
+  }catch(e){ /* private browsing or storage disabled — session just won't persist */ }
+}
+function loadSession(){
+  try{
+    const raw = localStorage.getItem(SESSION_KEY);
+    if(!raw) return null;
+    const s = JSON.parse(raw);
+    if(!s.expiresAt || Date.now() > s.expiresAt){ localStorage.removeItem(SESSION_KEY); return null; }
+    return s;
+  }catch(e){ return null; }
+}
+function clearSession(){
+  try{ localStorage.removeItem(SESSION_KEY); }catch(e){}
+}
+function logOut(){
+  clearSession();
+  state.unlocked = false;
+  state.adminMode = false;
+  render();
+}
+
+async function boot(){
+  const [config, events, standings, autoGamesDoc, off, def, st, scoutOff, scoutDef] = await Promise.all([
+    sGet('config'), sGet('events'), sGet('standings'), sGet('auto-games'),
+    sGet('content-offense'), sGet('content-defense'), sGet('content-specialteams'),
+    sGet('content-scoutingOffense'), sGet('content-scoutingDefense')
+  ]);
+  state.config = config;
+  state.events = events || [];
+  state.standings = standings;
+  state.autoGames = (autoGamesDoc && autoGamesDoc.games) || [];
+  state.content.offense = normalizeContent(off);
+  state.content.defense = normalizeContent(def);
+  state.content.specialteams = normalizeContent(st);
+  state.content.scoutingOffense = normalizeContent(scoutOff);
+  state.content.scoutingDefense = normalizeContent(scoutDef);
+  if(config){
+    const session = loadSession();
+    if(session && session.unlocked){
+      state.unlocked = true;
+      state.adminMode = !!session.adminMode;
+    }
+  }
+  state.booted = true;
+  render();
+  attachLiveSync();
+  // First-run seed: if nobody has posted a scouting report yet, drop in the
+  // Lehi Dalley offense breakdown so the section isn't empty on day one.
+  // Only runs when the doc genuinely doesn't exist yet — never overwrites.
+  if(config && !scoutOff){
+    seedScoutingReport().catch(err=>console.error('Seed scouting report failed:', err));
+  }
+}
+window.boot = boot; // called by the Firebase module script once it's ready
+
+async function seedScoutingReport(){
+  const seed = {
+    id: 'seed_lehi_dalley_offense',
+    weekOf: 'Week — vs Lehi Dalley',
+    opponent: 'Lehi Dalley',
+    summary: "38 offensive snaps logged from Hudl; 35 of those are classified as a run or pass (the rest were penalties, dropped snaps, or plays without a type). Heavy run tendency on 1st down that flips to pass on 2nd–4th. Base formation is DUBS (~76% of snaps). RB Handoff and QB Sneak are their top run calls; screens are their explosive-play generator. 3 fumbles logged in this sample.",
+    runPassByDown: [ {down:1,run:12,pass:1}, {down:2,run:2,pass:7}, {down:3,run:2,pass:4}, {down:4,run:1,pass:5}, {down:'Other',run:1,pass:0} ],
+    formations: [
+      {name:'DUBS', count:29}, {name:'SHOTGUN R (TE)', count:6}, {name:'DUBS TIGHT', count:1},
+      {name:'SHOTGUN L (TE)', count:1}, {name:'TRIPS LT', count:1}
+    ],
+    calls: [
+      {name:'RB HANDOFF', count:10, kind:'Run'}, {name:'QB SNEAK', count:4, kind:'Run'}, {name:'SWEEP', count:3, kind:'Run'},
+      {name:'POP PASS', count:5, kind:'Pass'}, {name:'WR SCREEN', count:4, kind:'Pass'}, {name:'RB SCREEN', count:2, kind:'Pass'},
+      {name:'WR ROCKET', count:1, kind:'Pass'}
+    ],
+    strengthDir: [
+      {formation:'DUBS', withStr:10, middle:7, away:8},
+      {formation:'SHOTGUN R (TE)', withStr:5, middle:0, away:1}
+    ],
+    keys: "Load the box on 1st down vs DUBS — 92% run tendency in this sample.\nQB Sneak is a designed run, not just short yardage — give an ILB an A-gap/spy key for it.\nExpect pass on 2nd–4th down — mostly quick game (Pop Pass, WR/RB Screen), not a deep drop-back attack.\nDiagnose screens fast — their two longest gains were screens (18 & 15 yds). OLBs: one extra beat before committing on run flow on pass downs.\nContain the perimeter hard on Sweep, force it back inside to pursuit.\nTheir strength call is a bigger tell out of Shotgun R (TE) than out of DUBS — jump it there, stay on run/pass keys in DUBS.\nPressure passing downs — 3 fumbles forced in this sample, including a sack-fumble on 4th-and-7.",
+    playbookLinks: [], videos: [], images: [],
+    notes: "Source: Hudl play-by-play export, offensive snaps only. One game's sample — treat as strong tendencies, not certainties.",
+    createdAt: Date.now(),
+  };
+  const content = { posts:[seed], currentPostId: seed.id };
+  const ok = await sSet('content-scoutingOffense', content);
+  if(ok){
+    state.content.scoutingOffense = content;
+    render();
+  }
+}
+
+function attachLiveSync(){
+  // Keep everyone's screen in sync in real time once the hub exists.
+  if(!window.__fb) return;
+  window.__fb.watch('config', v=>{ if(v){ state.config = v; if(state.booted) render(); } });
+  window.__fb.watch('events', v=>{ state.events = v || []; if(state.booted) render(); });
+  window.__fb.watch('standings', v=>{ state.standings = v; if(state.booted) render(); });
+  window.__fb.watch('auto-games', v=>{ state.autoGames = (v && v.games) || []; if(state.booted) render(); });
+  window.__fb.watch('content-offense', v=>{ state.content.offense = normalizeContent(v); if(state.booted) render(); });
+  window.__fb.watch('content-defense', v=>{ state.content.defense = normalizeContent(v); if(state.booted) render(); });
+  window.__fb.watch('content-specialteams', v=>{ state.content.specialteams = normalizeContent(v); if(state.booted) render(); });
+  window.__fb.watch('content-scoutingOffense', v=>{ state.content.scoutingOffense = normalizeContent(v); if(state.booted) render(); });
+  window.__fb.watch('content-scoutingDefense', v=>{ state.content.scoutingDefense = normalizeContent(v); if(state.booted) render(); });
+}
+
+/* ============================ SETUP (first run) ============================ */
+async function submitSetup(e){
+  e.preventDefault();
+  const f = e.target;
+  const btn = f.querySelector('button[type=submit]');
+  const cfg = {
+    teamName: f.teamName.value.trim() || 'Our Team',
+    logoUrl: f.logoUrl.value.trim(),
+    viewPassword: f.viewPassword.value,
+    editPassword: f.editPassword.value,
+    record: f.record.value.trim() || '0-0',
+    standingText: f.standingText.value.trim() || 'TBD',
+    links:{ rules:'', schedule:'', hudl:'', standings:'' }
+  };
+  if(!window.__fb){
+    state.error = "Can't reach Firebase yet. Double-check the firebaseConfig values in the HTML file and that Firestore is enabled in your Firebase project, then reload.";
+    render();
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'Creating…';
+  render();
+  try{
+    const ok = await sSet('config', cfg);
+    if(!ok){
+      state.error = 'Could not save setup — Firestore did not confirm the write. Check your Firestore security rules allow writes, then try again.';
+      render();
+      return;
+    }
+    state.config = cfg;
+    state.unlocked = true;
+    state.adminMode = true;
+    state.error = null;
+    saveSession(true, true);
+    showToast('Hub created — you are in Coach Mode.');
+  } catch(err){
+    console.error('Setup failed:', err);
+    state.error = 'Something went wrong saving setup: ' + (err && err.message ? err.message : 'unknown error');
+    render();
+  }
+}
+
+/* ============================ GATE ============================ */
+function submitGate(e){
+  e.preventDefault();
+  const pw = e.target.password.value;
+  if(pw === state.config.viewPassword || pw === state.config.editPassword){
+    state.unlocked = true;
+    if(pw === state.config.editPassword) state.adminMode = true;
+    state.error = null;
+    saveSession(true, state.adminMode);
+  } else {
+    state.error = 'Wrong password. Ask your coach for the team password.';
+  }
+  render();
+}
+
+function openAdminLogin(){ state.modal = {type:'adminlogin'}; render(); }
+function submitAdminLogin(e){
+  e.preventDefault();
+  const pw = e.target.password.value;
+  if(pw === state.config.editPassword){
+    state.adminMode = true;
+    state.modal = null;
+    saveSession(true, true);
+  } else {
+    state.error='Wrong coach password.';
+  }
+  render();
+}
+function exitAdmin(){ state.adminMode=false; saveSession(true, false); render(); }
+
+/* ============================ NAV ============================ */
+function goTo(view){ state.view = view; state.modal=null; render(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+/* ============================ EVENTS (CALENDAR) ============================ */
+function openEventModal(existing){
+  state.modal = {type:'event', payload: existing ? {...existing} : {
+    id: 'evt_'+Date.now(), type:'game', title:'', date:'', time:'', endTime:'', location:'', opponent:'', notes:''
+  }};
+  render();
+}
+async function submitEvent(e){
+  e.preventDefault();
+  const f = e.target;
+  const btn = f.querySelector('button[type=submit]');
+  const payload = state.modal.payload;
+  const evt = {
+    id: payload.id,
+    type: f.type.value,
+    date: f.date.value,
+    time: f.time.value,
+    endTime: f.endTime.value,
+    opponent: f.opponent.value.trim(),
+    location: f.location.value.trim(),
+    notes: f.notes.value.trim(),
+  };
+  evt.title = evt.type === 'game' ? ('Game vs ' + (evt.opponent || 'TBD')) : 'Practice';
+  const nextEvents = [...state.events];
+  const idx = nextEvents.findIndex(x=>x.id===evt.id);
+  if(idx>=0) nextEvents[idx] = evt; else nextEvents.push(evt);
+  nextEvents.sort((a,b)=> (a.date+a.time).localeCompare(b.date+b.time));
+  btn.disabled = true; btn.textContent = 'Saving…';
+  render();
+  try{
+    const ok = await sSet('events', nextEvents);
+    if(!ok){ state.error = 'Could not save — storage did not confirm the write.'; render(); return; }
+    state.events = nextEvents;
+    state.modal = null;
+    showToast('Saved to schedule.');
+  }catch(err){
+    console.error('Event save failed:', err);
+    state.error = 'Something went wrong saving this: ' + (err && err.message ? err.message : 'unknown error');
+    render();
+  }
+}
+async function deleteEvent(id){
+  if(!confirm('Remove this from the schedule?')) return;
+  const nextEvents = state.events.filter(x=>x.id!==id);
+  try{
+    const ok = await sSet('events', nextEvents);
+    if(!ok){ showToast('Could not delete — try again.'); return; }
+    state.events = nextEvents;
+    render();
+    showToast('Removed.');
+  }catch(err){
+    console.error('Delete failed:', err);
+    showToast('Could not delete — try again.');
+  }
+}
+
+/* ============================ RECURRING PRACTICES ============================ */
+const RECURRING_DAY_KEYS = ['sun','mon','tue','wed','thu','fri','sat'];
+const RECURRING_DAY_LABELS = {sun:'Sunday',mon:'Monday',tue:'Tuesday',wed:'Wednesday',thu:'Thursday',fri:'Friday',sat:'Saturday'};
+function openRecurringModal(){
+  state.modal = {type:'recurring', payload:{ startDate:'', endDate:'', location:'', notes:'' }};
+  state.error = null;
+  render();
+}
+async function submitRecurring(e){
+  e.preventDefault();
+  const f = e.target;
+  const btn = f.querySelector('button[type=submit]');
+  const startDate = f.startDate.value;
+  const endDate = f.endDate.value;
+  const location = f.location.value.trim();
+  const notes = f.notes.value.trim();
+
+  if(!startDate || !endDate){ state.error='Pick a start and end date.'; render(); return; }
+  if(endDate < startDate){ state.error='The end date is before the start date.'; render(); return; }
+
+  const dayConfig = {};
+  let anyDay = false;
+  RECURRING_DAY_KEYS.forEach(k=>{
+    if(f['day_'+k].checked){
+      anyDay = true;
+      dayConfig[k] = { start: f['start_'+k].value, end: f['end_'+k].value };
+    }
+  });
+  if(!anyDay){ state.error='Select at least one day of the week.'; render(); return; }
+
+  const generated = [];
+  let cur = new Date(startDate+'T00:00:00');
+  const end = new Date(endDate+'T00:00:00');
+  while(cur <= end){
+    const dow = RECURRING_DAY_KEYS[cur.getDay()];
+    if(dayConfig[dow]){
+      const dateStr = `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`;
+      generated.push({
+        id: 'series_'+dateStr,
+        type: 'practice',
+        title: 'Practice',
+        date: dateStr,
+        time: dayConfig[dow].start || '',
+        endTime: dayConfig[dow].end || '',
+        opponent: '',
+        location,
+        notes,
+      });
+    }
+    cur.setDate(cur.getDate()+1);
+  }
+  if(!generated.length){ state.error='No matching days landed inside that date range.'; render(); return; }
+
+  const nextEvents = [...state.events];
+  generated.forEach(g=>{
+    const idx = nextEvents.findIndex(x=>x.id===g.id);
+    if(idx>=0) nextEvents[idx] = g; else nextEvents.push(g);
+  });
+  nextEvents.sort((a,b)=> (a.date+a.time).localeCompare(b.date+b.time));
+
+  btn.disabled = true; btn.textContent = 'Adding…';
+  render();
+  try{
+    const ok = await sSet('events', nextEvents);
+    if(!ok){ state.error = 'Could not save — storage did not confirm the write.'; render(); return; }
+    state.events = nextEvents;
+    state.modal = null;
+    showToast(`Added ${generated.length} practice${generated.length===1?'':'s'} to the schedule.`);
+  }catch(err){
+    console.error('Recurring save failed:', err);
+    state.error = 'Something went wrong saving these: ' + (err && err.message ? err.message : 'unknown error');
+    render();
+  }
+}
+
+/* ============================ LINKS / CONFIG EDIT ============================ */
+function openLinksModal(){ state.modal={type:'links', payload:{...state.config}}; render(); }
+
+function openStandingsModal(){
+  const lines = (state.standings && state.standings.teams || [])
+    .map(t => [t.team||'', t.w ?? 0, t.l ?? 0, t.t ?? 0].join(', ')).join('\n');
+  state.modal = { type:'standings', payload: { text: lines } };
+  render();
+}
+async function submitStandings(e){
+  e.preventDefault();
+  const f = e.target;
+  const btn = f.querySelector('button[type=submit]');
+  const teams = f.rows.value.split('\n').map(line=>line.trim()).filter(Boolean).map(line=>{
+    const parts = line.split(',').map(p=>p.trim());
+    return { team: parts[0]||'', w: parseInt(parts[1],10)||0, l: parseInt(parts[2],10)||0, t: parseInt(parts[3],10)||0, pct:'', streak:'', coach:'' };
+  });
+  const payload = {
+    divisionLabel: (state.standings && state.standings.divisionLabel) || '',
+    sourceUrl: (state.standings && state.standings.sourceUrl) || '',
+    updatedAt: Date.now(),
+    manual: true,
+    teams,
+  };
+  btn.disabled = true; btn.textContent = 'Saving…';
+  render();
+  try{
+    const ok = await sSet('standings', payload);
+    if(!ok){ state.error = 'Could not save — storage did not confirm the write.'; render(); return; }
+    state.standings = payload;
+    state.modal = null;
+    showToast('Standings updated.');
+  }catch(err){
+    console.error('Standings save failed:', err);
+    state.error = 'Something went wrong saving this: ' + (err && err.message ? err.message : 'unknown error');
+    render();
+  }
+}
+
+async function submitLinks(e){
+  e.preventDefault();
+  const f = e.target;
+  const btn = f.querySelector('button[type=submit]');
+  const nextConfig = {...state.config};
+  nextConfig.logoUrl = f.logoUrl.value.trim();
+  nextConfig.links = {
+    rules: f.rules.value.trim(),
+    schedule: f.schedule.value.trim(),
+    hudl: f.hudl.value.trim(),
+    standings: f.standings.value.trim(),
+    offensePlaybook: f.offensePlaybook.value.trim(),
+    defensePlaybook: f.defensePlaybook.value.trim(),
+  };
+  nextConfig.record = f.record.value.trim();
+  nextConfig.standingText = f.standingText.value.trim();
+  btn.disabled = true; btn.textContent = 'Saving…';
+  render();
+  try{
+    const ok = await sSet('config', nextConfig);
+    if(!ok){ state.error = 'Could not save — storage did not confirm the write.'; render(); return; }
+    state.config = nextConfig;
+    state.modal = null;
+    showToast('Links & record updated.');
+  }catch(err){
+    console.error('Links save failed:', err);
+    state.error = 'Something went wrong saving this: ' + (err && err.message ? err.message : 'unknown error');
+    render();
+  }
+}
+
+/* ============================ POSITION CONTENT ============================ */
+// Content used to be stored as one "current" post plus an archive array.
+// It's now a flat list of posts (any of which can be flagged "current"),
+// so coaches can add, edit, or delete a post for any week — not just the
+// latest one. normalizeContent() migrates old-shape data the first time
+// it's read, so nothing already posted gets lost.
+function normalizeContent(raw){
+  if(!raw) return { posts: [], currentPostId: null };
+  if(Array.isArray(raw.posts)) return raw; // already new shape
+  if(raw.weekOf !== undefined || (raw.archive && raw.archive.length)){
+    const posts = [];
+    const baseTime = raw.updatedAt ? (Date.parse(raw.updatedAt) || Date.now()) : Date.now();
+    if(raw.weekOf){
+      posts.push({
+        id: 'legacy_current', weekOf: raw.weekOf, lineup: raw.lineup||'', drills: raw.drills||'',
+        notes: raw.notes||'', playbookLinks: raw.playbookLinks||[], videos: raw.videos||[], createdAt: baseTime,
+      });
+    }
+    (raw.archive||[]).forEach((a,i)=>{
+      posts.push({
+        id: 'legacy_archive_'+i, weekOf: a.weekOf||'Untitled week', lineup: a.lineup||'', drills: a.drills||'',
+        notes: a.notes||'', playbookLinks: a.playbookLinks||[], videos: a.videos||[], createdAt: baseTime-(i+1)*1000,
+      });
+    });
+    return { posts, currentPostId: posts.length ? posts[0].id : null };
+  }
+  return { posts: [], currentPostId: null };
+}
+function getCurrentPost(posKey){
+  const c = state.content[posKey];
+  if(!c || !c.posts || !c.posts.length) return null;
+  const pinned = c.posts.find(p=>p.id===c.currentPostId);
+  if(pinned) return pinned;
+  return [...c.posts].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))[0];
+}
+function otherPosts(posKey){
+  const c = state.content[posKey];
+  if(!c || !c.posts) return [];
+  const current = getCurrentPost(posKey);
+  return c.posts.filter(p=>p!==current).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+}
+function blankPost(){
+  return { id:'post_'+Date.now(), weekOf:'', lineup:'', drills:'', notes:'', playbookLinks:[{label:'',url:''}], videos:[{title:'',url:''}], images:[{caption:'',url:''}] };
+}
+function openPostEdit(posKey, postId){
+  const c = state.content[posKey];
+  const existing = postId && c && c.posts ? c.posts.find(p=>p.id===postId) : null;
+  const base = existing ? JSON.parse(JSON.stringify(existing)) : blankPost();
+  if(!base.playbookLinks || !base.playbookLinks.length) base.playbookLinks=[{label:'',url:''}];
+  if(!base.videos || !base.videos.length) base.videos=[{title:'',url:''}];
+  if(!base.images || !base.images.length) base.images=[{caption:'',url:''}];
+  base.makeCurrent = existing ? (c.currentPostId===existing.id) : true;
+  state.modal = {type:'content', posKey, payload: base};
+  render();
+}
+function addRow(field){
+  const p = state.modal.payload;
+  if(field==='videos') p.videos.push({title:'',url:''});
+  else if(field==='images') p.images.push({caption:'',url:''});
+  else p.playbookLinks.push({label:'',url:''});
+  render();
+}
+function updateRow(field, idx, key, val){
+  state.modal.payload[field][idx][key] = val;
+}
+async function submitContent(e){
+  e.preventDefault();
+  const f = e.target;
+  const btn = f.querySelector('button[type=submit]');
+  const p = state.modal.payload;
+  p.weekOf = f.weekOf.value.trim();
+  p.lineup = f.lineup.value.trim();
+  p.drills = f.drills.value.trim();
+  p.notes = f.notes.value.trim();
+  p.playbookLinks = p.playbookLinks.filter(x=>x.label.trim()||x.url.trim());
+  p.videos = p.videos.filter(x=>x.title.trim()||x.url.trim());
+  p.images = (p.images||[]).filter(x=>x.url.trim());
+  if(!p.createdAt) p.createdAt = Date.now();
+  const makeCurrent = f.makeCurrent.checked;
+
+  const posKey = state.modal.posKey;
+  const existingContent = state.content[posKey] || { posts: [], currentPostId: null };
+  const posts = [...(existingContent.posts||[])];
+  const idx = posts.findIndex(x=>x.id===p.id);
+  const toSave = { id:p.id, weekOf:p.weekOf, lineup:p.lineup, drills:p.drills, notes:p.notes, playbookLinks:p.playbookLinks, videos:p.videos, images:p.images, createdAt:p.createdAt };
+  if(idx>=0) posts[idx]=toSave; else posts.push(toSave);
+  const nextContent = { posts, currentPostId: makeCurrent ? p.id : (existingContent.currentPostId || (posts.length===1?p.id:null)) };
+
+  btn.disabled = true; btn.textContent = 'Saving…';
+  render();
+  try{
+    const ok = await sSet('content-'+posKey, nextContent);
+    if(!ok){ state.error = 'Could not save — storage did not confirm the write.'; render(); return; }
+    state.content[posKey] = nextContent;
+    state.modal = null;
+    showToast('Weekly update saved.');
+  }catch(err){
+    console.error('Content save failed:', err);
+    state.error = 'Something went wrong saving this: ' + (err && err.message ? err.message : 'unknown error');
+    render();
+  }
+}
+async function deleteContentPost(posKey, postId){
+  if(!confirm("Delete this weekly post? This can't be undone.")) return;
+  const existingContent = state.content[posKey] || { posts: [], currentPostId: null };
+  const posts = (existingContent.posts||[]).filter(p=>p.id!==postId);
+  let currentPostId = existingContent.currentPostId;
+  if(currentPostId === postId){
+    const fallback = [...posts].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))[0];
+    currentPostId = fallback ? fallback.id : null;
+  }
+  const nextContent = { posts, currentPostId };
+  try{
+    const ok = await sSet('content-'+posKey, nextContent);
+    if(!ok){ showToast('Could not delete — try again.'); return; }
+    state.content[posKey] = nextContent;
+    render();
+    showToast('Post deleted.');
+  }catch(err){
+    console.error('Delete failed:', err);
+    showToast('Could not delete — try again.');
+  }
+}
+async function setCurrentPost(posKey, postId){
+  const existingContent = state.content[posKey];
+  if(!existingContent) return;
+  const nextContent = { ...existingContent, currentPostId: postId };
+  try{
+    const ok = await sSet('content-'+posKey, nextContent);
+    if(!ok){ showToast('Could not update — try again.'); return; }
+    state.content[posKey] = nextContent;
+    render();
+    showToast('Set as the current week.');
+  }catch(err){
+    console.error('Set-current failed:', err);
+    showToast('Could not update — try again.');
+  }
+}
+
+/* ============================ SCOUTING REPORT CONTENT ============================ */
+// Reuses the same posts/currentPostId storage shape as position weekly
+// updates (normalizeContent, getCurrentPost, otherPosts, deleteContentPost,
+// setCurrentPost all work unchanged for posKey 'scoutingOffense' /
+// 'scoutingDefense'), but the post itself holds structured tendency data
+// instead of lineup/drills text, so it gets its own blank/open/submit trio.
+function blankScoutPost(posKey){
+  const L = scoutLabelsFor(posKey);
+  return {
+    id:'scoutpost_'+Date.now(), weekOf:'', opponent:'', summary:'',
+    runPassByDown:[{down:1,run:0,pass:0},{down:2,run:0,pass:0},{down:3,run:0,pass:0},{down:4,run:0,pass:0},{down:'Other',run:0,pass:0}],
+    formations:[{name:'',count:''}],
+    calls:[{name:'',count:'',kind:L.kindA}],
+    strengthDir:[{formation:'',withStr:'',middle:'',away:''}],
+    keys:'', notes:'',
+    playbookLinks:[{label:'',url:''}], videos:[{title:'',url:''}], images:[],
+  };
+}
+function openScoutPostEdit(posKey, postId){
+  const c = state.content[posKey];
+  const L = scoutLabelsFor(posKey);
+  const existing = postId && c && c.posts ? c.posts.find(p=>p.id===postId) : null;
+  const base = existing ? JSON.parse(JSON.stringify(existing)) : blankScoutPost(posKey);
+  if(!base.runPassByDown || base.runPassByDown.length<5) base.runPassByDown=[{down:1,run:0,pass:0},{down:2,run:0,pass:0},{down:3,run:0,pass:0},{down:4,run:0,pass:0},{down:'Other',run:0,pass:0}];
+  if(!base.formations || !base.formations.length) base.formations=[{name:'',count:''}];
+  if(!base.calls || !base.calls.length) base.calls=[{name:'',count:'',kind:L.kindA}];
+  if(!base.strengthDir || !base.strengthDir.length) base.strengthDir=[{formation:'',withStr:'',middle:'',away:''}];
+  if(!base.playbookLinks || !base.playbookLinks.length) base.playbookLinks=[{label:'',url:''}];
+  if(!base.videos || !base.videos.length) base.videos=[{title:'',url:''}];
+  base.makeCurrent = existing ? (c.currentPostId===existing.id) : true;
+  state.modal = {type:'scoutcontent', posKey, payload: base};
+  render();
+}
+function addScoutRow(field){
+  const p = state.modal.payload;
+  const L = scoutLabelsFor(state.modal.posKey);
+  if(field==='formations') p.formations.push({name:'',count:''});
+  else if(field==='calls') p.calls.push({name:'',count:'',kind:L.kindA});
+  else if(field==='strengthDir') p.strengthDir.push({formation:'',withStr:'',middle:'',away:''});
+  else if(field==='videos') p.videos.push({title:'',url:''});
+  else if(field==='playbookLinks') p.playbookLinks.push({label:'',url:''});
+  render();
+}
+function updateScoutRow(field, idx, key, val){
+  state.modal.payload[field][idx][key] = val;
+}
+async function submitScoutPost(e){
+  e.preventDefault();
+  const f = e.target;
+  const btn = f.querySelector('button[type=submit]');
+  const p = state.modal.payload;
+  p.weekOf = f.weekOf.value.trim();
+  p.opponent = f.opponent.value.trim();
+  p.summary = f.summary.value.trim();
+  p.keys = f.keys.value.trim();
+  p.notes = f.notes.value.trim();
+  p.runPassByDown = [1,2,3,4,'Other'].map(d=>({
+    down:d,
+    run: parseInt(f[`rp_${d}_run`].value,10) || 0,
+    pass: parseInt(f[`rp_${d}_pass`].value,10) || 0,
+  }));
+  const L = scoutLabelsFor(state.modal.posKey);
+  p.formations = p.formations.map(x=>({name:x.name.trim(), count:parseInt(x.count,10)||0})).filter(x=>x.name && x.count>0);
+  p.calls = p.calls.map(x=>({name:x.name.trim(), count:parseInt(x.count,10)||0, kind:x.kind===L.kindB?L.kindB:L.kindA})).filter(x=>x.name && x.count>0);
+  p.strengthDir = p.strengthDir.map(x=>({
+    formation:x.formation.trim(), withStr:parseInt(x.withStr,10)||0, middle:parseInt(x.middle,10)||0, away:parseInt(x.away,10)||0,
+  })).filter(x=>x.formation && (x.withStr||x.middle||x.away));
+  p.playbookLinks = p.playbookLinks.filter(x=>x.label.trim()||x.url.trim());
+  p.videos = p.videos.filter(x=>x.title.trim()||x.url.trim());
+  if(!p.createdAt) p.createdAt = Date.now();
+  const makeCurrent = f.makeCurrent.checked;
+
+  const posKey = state.modal.posKey;
+  const existingContent = state.content[posKey] || { posts: [], currentPostId: null };
+  const posts = [...(existingContent.posts||[])];
+  const idx = posts.findIndex(x=>x.id===p.id);
+  const toSave = {
+    id:p.id, weekOf:p.weekOf, opponent:p.opponent, summary:p.summary,
+    runPassByDown:p.runPassByDown, formations:p.formations, calls:p.calls, strengthDir:p.strengthDir,
+    keys:p.keys, notes:p.notes, playbookLinks:p.playbookLinks, videos:p.videos, createdAt:p.createdAt,
+  };
+  if(idx>=0) posts[idx]=toSave; else posts.push(toSave);
+  const nextContent = { posts, currentPostId: makeCurrent ? p.id : (existingContent.currentPostId || (posts.length===1?p.id:null)) };
+
+  btn.disabled = true; btn.textContent = 'Saving…';
+  render();
+  try{
+    const ok = await sSet('content-'+posKey, nextContent);
+    if(!ok){ state.error = 'Could not save — storage did not confirm the write.'; render(); return; }
+    state.content[posKey] = nextContent;
+    state.modal = null;
+    showToast('Scouting report saved.');
+  }catch(err){
+    console.error('Scouting report save failed:', err);
+    state.error = 'Something went wrong saving this: ' + (err && err.message ? err.message : 'unknown error');
+    render();
+  }
+}
+
+
+function embedUrlFor(url){
+  if(!url) return null;
+  url = url.trim();
+  let m = url.match(/youtu\.be\/([A-Za-z0-9_-]+)/) || url.match(/[?&]v=([A-Za-z0-9_-]+)/) || url.match(/youtube\.com\/embed\/([A-Za-z0-9_-]+)/) || url.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]+)/);
+  if(m) return {kind:'iframe', src:'https://www.youtube.com/embed/'+m[1]};
+  m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if(m) return {kind:'iframe', src:'https://player.vimeo.com/video/'+m[1]};
+  m = url.match(/loom\.com\/(?:share|embed)\/([A-Za-z0-9]+)/);
+  if(m) return {kind:'iframe', src:'https://www.loom.com/embed/'+m[1]};
+  if(/\.(mp4|webm|mov)(\?.*)?$/i.test(url)) return {kind:'video', src:url};
+  return {kind:'iframe', src:url};
+}
+
+// Google Drive "share" links (drive.google.com/file/d/ID/view) are a viewer
+// PAGE, not the image itself — an <img> tag can't load them directly. This
+// converts them (and the open?id= variant) to a URL that actually serves
+// the raw image bytes. Non-Drive URLs pass through untouched.
+function imageUrlFor(url){
+  if(!url) return url;
+  url = url.trim();
+  let m = url.match(/drive\.google\.com\/file\/d\/([A-Za-z0-9_-]+)/);
+  if(!m) m = url.match(/drive\.google\.com\/open\?id=([A-Za-z0-9_-]+)/);
+  if(!m) m = url.match(/[?&]id=([A-Za-z0-9_-]+)/);
+  if(m) return `https://lh3.googleusercontent.com/d/${m[1]}`;
+  return url;
+}
+function handleImgError(img){
+  if(img.dataset.fallbackShown) return;
+  img.dataset.fallbackShown = '1';
+  img.style.display = 'none';
+  const holder = img.parentElement;
+  if(holder){
+    const div = document.createElement('div');
+    div.className = 'img-broken';
+    div.textContent = 'Photo unavailable — check the link';
+    holder.appendChild(div);
+  }
+}
+
+/* ============================ DATE HELPERS ============================ */
+function fmtDate(d){ // d = 'YYYY-MM-DD'
+  if(!d) return '';
+  const dt = new Date(d+'T00:00:00');
+  return dt.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'});
+}
+function dayNum(d){ return new Date(d+'T00:00:00').getDate(); }
+function monthAbbr(d){ return new Date(d+'T00:00:00').toLocaleDateString(undefined,{month:'short'}).toUpperCase(); }
+function todayStr(){ const t=new Date(); return t.toISOString().slice(0,10); }
+function fmt12h(t){
+  if(!t) return '';
+  const [hStr,mStr] = t.split(':');
+  let h = parseInt(hStr,10);
+  if(isNaN(h)) return t;
+  const ampm = h>=12 ? 'PM':'AM';
+  h = h % 12; if(h===0) h=12;
+  return `${h}:${mStr} ${ampm}`;
+}
+function fmtTimeRange(time,endTime){
+  if(!time) return '';
+  if(!endTime) return fmt12h(time);
+  return `${fmt12h(time)}–${fmt12h(endTime)}`;
+}
+function combinedEvents(){
+  const auto = state.autoGames.map(g=>({
+    id: g.id,
+    type: 'game',
+    date: g.date,
+    time: g.time,
+    opponent: g.opponent,
+    title: 'Game vs ' + (g.opponent || 'TBD'),
+    location: g.location || '',
+    notes: (g.homeAway==='home' ? 'Home game' : 'Away game') + (g.week ? ' · '+g.week : ''),
+    source: 'league',
+  }));
+  // Coach-entered events win if they share a date+opponent with an auto-imported one (e.g. time/location correction).
+  const manualKeys = new Set(state.events.filter(e=>e.type==='game').map(e=>e.date+'|'+(e.opponent||'').toLowerCase()));
+  const autoFiltered = auto.filter(g => !manualKeys.has(g.date+'|'+(g.opponent||'').toLowerCase()));
+  return [...state.events, ...autoFiltered];
+}
+function upcomingEvents(){
+  const t = todayStr();
+  return combinedEvents().filter(e=>e.date>=t).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+}
+function nextEvent(){ const u = upcomingEvents(); return u.length? u[0] : null; }
+function nextGame(){ return upcomingEvents().find(e=>e.type==='game') || null; }
+function nextPractice(){ return upcomingEvents().find(e=>e.type==='practice') || null; }
+
+/* ============================ RENDER ============================ */
+function render(){
+  const app = document.getElementById('app');
+  if(!state.booted){ app.innerHTML = `<div class="loading-wrap">LOADING TEAM HUB…</div>`; return; }
+  if(!state.config){ app.innerHTML = renderSetup(); attachSetup(); return; }
+  if(!state.unlocked){ app.innerHTML = renderGate(); attachGate(); return; }
+
+  app.innerHTML = `
+    ${renderHeader()}
+    ${renderNav()}
+    <main>${renderView()}</main>
+    <footer class="foot">${escapeHtml(state.config.teamName)} · Team Hub · shared with your whole team</footer>
+    ${state.modal ? renderModal() : ''}
+    ${state.toast ? `<div class="toast">${escapeHtml(state.toast)}</div>` : ''}
+  `;
+  attachGlobalHandlers();
+}
+
+function renderSetup(){
+  return `
+  <div class="gate-wrap"><div class="gate-card">
+    <div class="gate-eyebrow">First time setup</div>
+    <h1>Build your team hub</h1>
+    <form id="setupForm">
+      <div class="field-group"><label>Team name</label><input name="teamName" placeholder="Westlake Thunder — 5th Grade" required></div>
+      <div class="field-group"><label>Logo image URL (optional)</label><input name="logoUrl" placeholder="https://... link to your own logo image"></div>
+      <div class="helptext" style="margin-top:-8px;">Paste a link to an image you have the rights to use — we can't copy a logo from another site for you.</div>
+      <div class="field-group"><label>Team password (for players/parents)</label><input name="viewPassword" type="text" required placeholder="e.g. thunder2026"></div>
+      <div class="field-group"><label>Coach password (for editing)</label><input name="editPassword" type="text" required placeholder="keep this one to coaches"></div>
+      <div class="two-col">
+        <div class="field-group"><label>Current record</label><input name="record" placeholder="4-1"></div>
+        <div class="field-group"><label>Standing</label><input name="standingText" placeholder="2nd in division"></div>
+      </div>
+      ${state.error?`<div class="gate-error">${escapeHtml(state.error)}</div>`:''}
+      <button class="btn btn-primary" type="submit">Create the hub</button>
+      <div class="gate-foot">Both passwords are stored so your whole team can view. This isn't bank-level security — it just keeps casual visitors out.</div>
+    </form>
+  </div></div>`;
+}
+function attachSetup(){
+  document.getElementById('setupForm').addEventListener('submit', submitSetup);
+}
+
+function renderGate(){
+  return `
+  <div class="gate-wrap"><div class="gate-card">
+    <div class="gate-eyebrow">${escapeHtml(state.config.teamName)}</div>
+    <h1>Team Hub</h1>
+    <form id="gateForm">
+      <div class="field-group"><label>Team password</label><input name="password" type="password" required autofocus></div>
+      ${state.error?`<div class="gate-error">${escapeHtml(state.error)}</div>`:''}
+      <button class="btn btn-primary" type="submit">Enter</button>
+      <div class="gate-foot">Coaches: enter your coach password here too — it unlocks edit mode automatically.</div>
+    </form>
+  </div></div>`;
+}
+function attachGate(){
+  document.getElementById('gateForm').addEventListener('submit', submitGate);
+}
+
+function renderHeader(){
+  const logo = state.config.logoUrl;
+  return `
+  <header class="top"><div class="top-bar">
+    <div class="brand">
+      ${logo ? `<img src="${escapeAttr(imageUrlFor(logo))}" alt="${escapeAttr(state.config.teamName)} logo" style="height:34px;width:auto;border-radius:3px;" onerror="this.style.display='none';">` : `<div class="dot"></div>`}
+      <h1>${escapeHtml(state.config.teamName)}</h1>
+    </div>
+    <div class="top-actions">
+      ${state.adminMode
+        ? `<span class="admin-pill">COACH MODE</span><button class="btn btn-outline btn-small" onclick="exitAdmin()">Exit</button>`
+        : `<button class="btn btn-outline btn-small" onclick="openAdminLogin()">Coach Login</button>`}
+      <button class="btn btn-outline btn-small" onclick="logOut()" title="Forget this device's saved login">Log out</button>
+    </div>
+  </div></header>`;
+}
+
+function renderNav(){
+  const tabs = [
+    ['home','Home'],['calendar','Calendar'],['standings','Standings'],['offense','Offense'],
+    ['defense','Defense'],['specialteams','Special Teams'],['scouting','Scouting Report'],['links','Links']
+  ];
+  return `<nav class="yardline"><div class="yardline-inner">
+    ${tabs.map(([k,l])=>`<button class="yard-tab ${state.view===k?'active':''}" onclick="goTo('${k}')">${l}</button>`).join('')}
+  </div></nav>`;
+}
+
+function renderView(){
+  switch(state.view){
+    case 'home': return renderHome();
+    case 'calendar': return renderCalendar();
+    case 'standings': return renderStandings();
+    case 'offense': return renderPosition('offense');
+    case 'defense': return renderPosition('defense');
+    case 'specialteams': return renderPosition('specialteams');
+    case 'scouting': return renderScouting();
+    case 'links': return renderLinks();
+    default: return renderHome();
+  }
+}
+
+function renderNextUp(ng, np){
+  if(!ng && !np) return `<div class="k">Next Up</div><div class="sb-empty">Nothing on the schedule yet.</div>`;
+  if(ng && !np) return renderNextUpItem(ng, 'Next Game', true);
+  if(np && !ng) return renderNextUpItem(np, 'Next Practice', true);
+  // Both exist: game gets top billing and the bigger treatment, practice sits below it.
+  return `${renderNextUpItem(ng, 'Next Game', true)}${renderNextUpItem(np, 'Next Practice', false)}`;
+}
+function renderNextUpItem(e, label, primary){
+  const title = e.type==='game' ? 'vs '+escapeHtml(e.opponent||'TBD') : 'Practice';
+  return `<div class="sb-next-item ${primary?'primary':'secondary'}">
+    <div class="k">${label}</div>
+    <div class="opp display">${title}</div>
+    <div class="meta">${fmtDate(e.date)}${e.time? ' · '+fmtTimeRange(e.time,e.endTime):''}${e.location? ' · '+escapeHtml(e.location):''}</div>
+  </div>`;
+}
+
+const OUR_TEAM_NAME = 'WL Moore';
+// Pulls our record and standing straight from the last synced standings doc,
+// so the Home page updates automatically the moment the scraper runs —
+// no manual re-typing needed. Falls back to null if nothing's synced yet.
+function deriveRecordAndStanding(){
+  const st = state.standings;
+  if(!st || !st.teams || !st.teams.length) return null;
+  const idx = st.teams.findIndex(t => (t.team||'').trim().toLowerCase() === OUR_TEAM_NAME.toLowerCase());
+  if(idx === -1) return null;
+  const t = st.teams[idx];
+  const w = t.w ?? 0, l = t.l ?? 0, ti = t.t ?? 0;
+  const record = ti ? `${w}-${l}-${ti}` : `${w}-${l}`;
+  const standing = `${idx+1} of ${st.teams.length}`;
+  return { record, standing };
+}
+
+function renderHome(){
+  const cfg = state.config;
+  const derived = deriveRecordAndStanding();
+  const recordDisplay = derived ? derived.record : (cfg.record || '—');
+  const standingDisplay = derived ? derived.standing : (cfg.standingText || '—');
+  const ng = nextGame();
+  const np = nextPractice();
+  return `
+  <div class="scoreboard">
+    <div>
+      <div class="sb-eyebrow">Team Hub</div>
+      <div class="sb-team display">${escapeHtml(cfg.teamName)}</div>
+      <div class="sb-tiles">
+        <div class="sb-tile"><div class="k">Record</div><div class="v">${escapeHtml(recordDisplay)}</div></div>
+        <div class="sb-tile"><div class="k">Standing</div><div class="v">${escapeHtml(standingDisplay)}</div></div>
+      </div>
+    </div>
+    <div class="sb-next">
+      ${renderNextUp(ng, np)}
+    </div>
+  </div>
+
+  <div class="section-head"><h2>This week by unit</h2><span class="sub">tap a page to see drills, lineup & video</span></div>
+  <div class="pos-grid">
+    ${Object.entries(POSITIONS).map(([key,meta])=>{
+      const post = getCurrentPost(key);
+      const excerpt = post ? (post.lineup || post.notes || post.drills || '') : '';
+      const videoCount = post ? (post.videos||[]).filter(v=>v.url).length : 0;
+      const links = post ? (post.playbookLinks||[]).filter(l=>l.url) : [];
+      return `<div class="pos-card" role="link" tabindex="0" onclick="goTo('${key}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goTo('${key}');}">
+        <div class="pc-eyebrow">${meta.eyebrow}</div>
+        <h3>${meta.label}</h3>
+        ${post ? `
+          <p style="font-weight:700;color:var(--field-dark);margin-bottom:4px;">${escapeHtml(post.weekOf)}</p>
+          ${excerpt?`<p style="margin-bottom:6px;">${escapeHtml(excerpt.length>90?excerpt.slice(0,90)+'…':excerpt)}</p>`:''}
+          ${videoCount?`<p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--rust);margin-bottom:${links.length?'6px':'0'};">▶ ${videoCount} video${videoCount===1?'':'s'}</p>`:''}
+          ${links.length?`<div style="display:flex;flex-wrap:wrap;gap:6px;">${links.map(l=>`<a href="${escapeAttr(l.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:11px;background:var(--chalk-dim);padding:4px 9px;border-radius:12px;font-weight:700;color:var(--field-dark);text-decoration:none;">📄 ${escapeHtml(l.label||'Playbook')}</a>`).join('')}</div>`:''}
+        ` : `<p>No update posted yet.</p>`}
+      </div>`;
+    }).join('')}
+  </div>
+
+  <div class="section-head"><h2>Quick links</h2></div>
+  ${renderLinkCards()}
+
+  ${(() => {
+    const withPosts = Object.entries(POSITIONS).filter(([key])=>getCurrentPost(key));
+    if(!withPosts.length) return '';
+    return `
+    <div class="section-head"><h2>This week, in full</h2><span class="sub">everything posted for offense, defense & special teams</span></div>
+    ${withPosts.map(([key,meta])=>`
+      <div style="margin-bottom:10px;">
+        <div style="font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px;">${meta.label}</div>
+        ${renderWeekCard(getCurrentPost(key), false, null, true)}
+      </div>
+    `).join('')}
+    `;
+  })()}
+  `;
+}
+
+function renderLinkCards(){
+  const L = state.config.links || {};
+  const items = [
+    ['League rules', L.rules],
+    ['League schedule', L.schedule],
+    ['Hudl', L.hudl],
+    ['Standings', L.standings],
+    ['Offense Playbook', L.offensePlaybook],
+    ['Defense Playbook', L.defensePlaybook],
+  ];
+  const has = items.some(([,u])=>u);
+  if(!has) return `<div class="empty-state">No links added yet. ${state.adminMode?'Add them from the Links page.':'Ask your coach to add them.'}</div>`;
+  return `<div class="card-grid">
+    ${items.filter(([,u])=>u).map(([label,url])=>`
+      <a class="link-card" href="${escapeAttr(url)}" target="_blank" rel="noopener">
+        <div class="lc-label">Open link</div>
+        <div class="lc-title">${escapeHtml(label)}</div>
+        <div class="lc-arrow">→</div>
+      </a>`).join('')}
+  </div>`;
+}
+
+/* ---------- CALENDAR ---------- */
+function renderCalendar(){
+  const cursor = state.calCursor;
+  const y = cursor.getFullYear(), m = cursor.getMonth();
+  const first = new Date(y,m,1);
+  const startDow = first.getDay();
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const monthLabel = first.toLocaleDateString(undefined,{month:'long', year:'numeric'});
+  const t = todayStr();
+  const allEvents = combinedEvents();
+
+  let cells = '';
+  for(let i=0;i<startDow;i++) cells += `<div class="cal-cell empty"></div>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayEvents = allEvents.filter(e=>e.date===dateStr);
+    cells += `<div class="cal-cell ${dateStr===t?'today':''}">
+      <div class="cal-daynum">${d}</div>
+      ${dayEvents.map(e=>`<div class="cal-evt ${e.type}" title="${escapeAttr(e.title)}">${escapeHtml(e.type==='game'?('vs '+(e.opponent||'TBD')):'Practice')}</div>`).join('')}
+    </div>`;
+  }
+
+  const up = upcomingEvents();
+
+  return `
+  <div class="section-head">
+    <h2>Calendar</h2>
+    ${state.adminMode?`<div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-gold btn-small" onclick="openEventModal()">+ Add game / practice</button>
+      <button class="btn btn-ghost btn-small" onclick="openRecurringModal()">+ Add recurring practices</button>
+    </div>`:''}
+  </div>
+  <div class="cal-toolbar">
+    <div class="cal-month display">${monthLabel}</div>
+    <div class="cal-nav">
+      <button onclick="shiftMonth(-1)">‹</button>
+      <button onclick="shiftMonth(1)">›</button>
+    </div>
+  </div>
+  <div class="cal-grid">
+    ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-dow">${d}</div>`).join('')}
+    ${cells}
+  </div>
+
+  <div class="section-head"><h2>Upcoming</h2>${state.autoGames.length?`<span class="sub">games synced from the league site</span>`:''}</div>
+  ${up.length? `<div class="upcoming-list">${up.map(e=>`
+    <div class="upcoming-row">
+      <div class="upcoming-date"><div class="d">${dayNum(e.date)}</div><div class="m">${monthAbbr(e.date)}</div></div>
+      <div class="upcoming-info">
+        <div class="t">${escapeHtml(e.title)} <span class="tag ${e.type}">${e.type}</span>${e.source==='league'?` <span class="tag" style="background:var(--ink-soft);">league</span>`:''}</div>
+        <div class="s">${e.time? fmtTimeRange(e.time,e.endTime)+' · ':''}${escapeHtml(e.location||'')}${e.notes? ' · '+linkifyText(e.notes):''}</div>
+      </div>
+      ${state.adminMode && e.source!=='league' ?`<div class="row-actions">
+        <button class="icon-btn" onclick='openEventModal(${JSON.stringify(e).replace(/'/g,"&#39;")})' title="Edit">✎</button>
+        <button class="icon-btn" onclick="deleteEvent('${e.id}')" title="Delete">✕</button>
+      </div>`:''}
+    </div>`).join('')}</div>` : `<div class="empty-state">No upcoming games or practices yet.</div>`}
+  `;
+}
+function shiftMonth(delta){
+  const c = state.calCursor;
+  state.calCursor = new Date(c.getFullYear(), c.getMonth()+delta, 1);
+  render();
+}
+
+/* ---------- POSITION PAGE ---------- */
+function renderPosition(posKey){
+  const meta = POSITIONS[posKey];
+  const current = getCurrentPost(posKey);
+  const others = otherPosts(posKey);
+  return `
+  <div class="section-head">
+    <h2>${meta.label}</h2>
+    ${state.adminMode?`<button class="btn btn-gold btn-small" onclick="openPostEdit('${posKey}', null)">+ Post a weekly update</button>`:''}
+  </div>
+  ${current ? renderWeekCard(current, false, posKey, true) : `<div class="empty-state">No weekly update posted yet. ${state.adminMode?'Click "Post a weekly update" to add drills, lineup, playbook links and video — for this week or to backfill a past one.':'Check back soon.'}</div>`}
+  ${others.length ? `
+    <div class="section-head"><h2 style="font-size:18px;">Other weeks</h2></div>
+    ${others.map(post=>`
+      <details class="archive-item">
+        <summary>${escapeHtml(post.weekOf||'Untitled week')}</summary>
+        <div style="margin-top:10px;">${renderWeekCard(post, true, posKey, false)}</div>
+      </details>
+    `).join('')}
+  ` : ''}
+  `;
+}
+function renderWeekCard(c, plain, posKey, isCurrent){
+  const links = (c.playbookLinks||[]).filter(l=>l.url);
+  const videos = (c.videos||[]).filter(v=>v.url);
+  const images = (c.images||[]).filter(im=>im.url);
+  const adminBar = (posKey && state.adminMode) ? `
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-small" onclick="openPostEdit('${posKey}', '${c.id}')">Edit</button>
+      ${!isCurrent?`<button class="btn btn-ghost btn-small" onclick="setCurrentPost('${posKey}', '${c.id}')">Set as current week</button>`:''}
+      <button class="btn btn-ghost btn-small" style="color:var(--error);border-color:#f0c9c9;" onclick="deleteContentPost('${posKey}', '${c.id}')">Delete</button>
+    </div>` : '';
+  return `
+  <div class="${plain?'':'week-card'}">
+    ${plain?'':'<div class="wk-eyebrow">This week</div>'}
+    ${plain?'':`<h2>${escapeHtml(c.weekOf)}</h2>`}
+    ${adminBar}
+    ${c.lineup?`<div class="wk-block"><h4>Lineup / weekly notes</h4><p style="white-space:pre-wrap;">${linkifyText(c.lineup)}</p></div>`:''}
+    ${c.drills?`<div class="wk-block"><h4>Drills</h4><p style="white-space:pre-wrap;">${linkifyText(c.drills)}</p></div>`:''}
+    ${links.length?`<div class="wk-block"><h4>Playbook & docs</h4>${links.map(l=>`<a class="plink" href="${escapeAttr(l.url)}" target="_blank" rel="noopener">📄 ${escapeHtml(l.label||'Open')}</a>`).join('')}</div>`:''}
+    ${videos.length?`<div class="wk-block"><h4>Video</h4><div class="video-grid">${videos.map(v=>{
+      const em = embedUrlFor(v.url);
+      const player = em.kind==='video' ? `<video src="${escapeAttr(em.src)}" controls></video>` : `<iframe src="${escapeAttr(em.src)}" allowfullscreen></iframe>`;
+      return `<div class="video-box">${player}<div class="video-title">${escapeHtml(v.title||'Video')}</div></div>`;
+    }).join('')}</div></div>`:''}
+    ${images.length?`<div class="wk-block"><h4>Photos</h4><div class="image-grid">${images.map(im=>`
+      <a href="${escapeAttr(im.url)}" target="_blank" rel="noopener" title="${escapeAttr(im.caption||'')}">
+        <img src="${escapeAttr(imageUrlFor(im.url))}" alt="${escapeAttr(im.caption||'Team photo')}" loading="lazy" onerror="handleImgError(this)">
+      </a>`).join('')}</div></div>`:''}
+    ${c.notes?`<div class="wk-block"><h4>Coach notes</h4><p style="white-space:pre-wrap;">${linkifyText(c.notes)}</p></div>`:''}
+  </div>`;
+}
+
+/* ---------- SCOUTING REPORT PAGE ---------- */
+function renderScouting(){
+  const activeUnit = SCOUT_UNITS[state.scoutSubTab] ? state.scoutSubTab : 'offense';
+  return `
+  <div class="section-head">
+    <h2>Scouting Report</h2>
+    <span class="sub">opponent tendencies, broken down by what we'll face on each side of the ball</span>
+  </div>
+  <div class="scout-subtabs">
+    ${Object.entries(SCOUT_UNITS).map(([key,meta])=>`
+      <button class="scout-subtab ${activeUnit===key?'active':''}" onclick="setScoutSubTab('${key}')">${meta.label}</button>
+    `).join('')}
+  </div>
+  ${renderScoutUnit(activeUnit)}
+  `;
+}
+function setScoutSubTab(key){
+  state.scoutSubTab = key;
+  render();
+}
+function renderScoutUnit(unitKey){
+  const meta = SCOUT_UNITS[unitKey];
+  const posKey = meta.posKey;
+  const current = getCurrentPost(posKey);
+  const others = otherPosts(posKey);
+  return `
+  <div class="section-head">
+    <h3 style="font-size:18px;margin:0;color:var(--field-dark);">${meta.label}</h3>
+    ${state.adminMode?`<button class="btn btn-gold btn-small" onclick="openScoutPostEdit('${posKey}', null)">+ Post scouting report</button>`:''}
+  </div>
+  ${current ? renderScoutWeekCard(current, false, posKey, true) : `<div class="empty-state">No scouting report posted yet. ${state.adminMode?'Click "Post scouting report" to add tendencies for this week — or backfill a past opponent.':'Check back before game week.'}</div>`}
+  ${others.length ? `
+    <div class="section-head"><h2 style="font-size:16px;">Previous opponents</h2></div>
+    ${others.map(post=>`
+      <details class="archive-item">
+        <summary>${escapeHtml(post.weekOf||'Untitled week')}${post.opponent?` — vs ${escapeHtml(post.opponent)}`:''}</summary>
+        <div style="margin-top:10px;">${renderScoutWeekCard(post, true, posKey, false)}</div>
+      </details>
+    `).join('')}
+  ` : ''}
+  `;
+}
+
+// --- small chart helpers, all hand-rolled divs so this stays a single static HTML file ---
+function barRows(items, valueKey, labelKey, color){
+  const max = Math.max(1, ...items.map(i=>Number(i[valueKey])||0));
+  const total = items.reduce((s,i)=>s+(Number(i[valueKey])||0),0) || 1;
+  return items.map(i=>{
+    const v = Number(i[valueKey])||0;
+    return `<div class="bar-row">
+      <div class="bar-label">${escapeHtml(i[labelKey])}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round((v/max)*100)}%;background:${color};"></div></div>
+      <div class="bar-value">${v} <span class="bar-pct">(${Math.round((v/total)*100)}%)</span></div>
+    </div>`;
+  }).join('');
+}
+function stackedRow(label, parts){ // parts: [{value, color, name}]
+  const total = parts.reduce((s,p)=>s+(Number(p.value)||0),0) || 1;
+  return `<div class="stacked-row">
+    <div class="stacked-label">${escapeHtml(label)}</div>
+    <div class="stacked-track">${parts.map(p=>{
+      const v = Number(p.value)||0;
+      return v>0 ? `<div class="stacked-seg" style="width:${(v/total*100).toFixed(1)}%;background:${p.color};" title="${escapeHtml(p.name)}: ${v}"></div>` : '';
+    }).join('')}</div>
+    <div class="stacked-total">${total}</div>
+  </div>`;
+}
+function scoutLegend(items){ // items: [{color,label}]
+  return `<div class="scout-legend">${items.map(i=>`<span class="scout-legend-item"><span class="scout-legend-dot" style="background:${i.color};"></span>${escapeHtml(i.label)}</span>`).join('')}</div>`;
+}
+
+function renderScoutWeekCard(c, plain, posKey, isCurrent){
+  const L = scoutLabelsFor(posKey);
+  const links = (c.playbookLinks||[]).filter(l=>l.url);
+  const videos = (c.videos||[]).filter(v=>v.url);
+  const rp = c.runPassByDown || [];
+  const totalRun = rp.reduce((s,d)=>s+(d.run||0),0);
+  const totalPass = rp.reduce((s,d)=>s+(d.pass||0),0);
+  const totalSnaps = totalRun+totalPass;
+  const formations = (c.formations||[]).slice().sort((a,b)=>b.count-a.count);
+  const calls = (c.calls||[]).slice().sort((a,b)=>b.count-a.count);
+  const strengthDir = c.strengthDir||[];
+  const topFormation = formations[0];
+  const topCall = calls[0];
+  const keyLines = (c.keys||'').split('\n').map(s=>s.trim()).filter(Boolean);
+
+  const adminBar = (posKey && state.adminMode) ? `
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-small" onclick="openScoutPostEdit('${posKey}', '${c.id}')">Edit</button>
+      ${!isCurrent?`<button class="btn btn-ghost btn-small" onclick="setCurrentPost('${posKey}', '${c.id}')">Set as current week</button>`:''}
+      <button class="btn btn-ghost btn-small" style="color:var(--error);border-color:#f0c9c9;" onclick="deleteContentPost('${posKey}', '${c.id}')">Delete</button>
+    </div>` : '';
+
+  return `
+  <div class="${plain?'':'week-card'}">
+    ${plain?'':'<div class="wk-eyebrow">This week</div>'}
+    ${plain?'':`<h2>${escapeHtml(c.weekOf)}${c.opponent?` — vs ${escapeHtml(c.opponent)}`:''}</h2>`}
+    ${adminBar}
+    ${c.summary?`<div class="wk-block"><p style="white-space:pre-wrap;">${linkifyText(c.summary)}</p></div>`:''}
+
+    ${totalSnaps ? `
+    <div class="stat-strip">
+      <div class="stat-card"><div class="stat-label">${L.splitStatLabel}</div><div class="stat-val">${Math.round(totalRun/totalSnaps*100)}% / ${Math.round(totalPass/totalSnaps*100)}%</div><div class="stat-sub">${totalRun} ${L.countNounA} · ${totalPass} ${L.countNounB}</div></div>
+      ${topFormation?`<div class="stat-card"><div class="stat-label">${L.topFormationStatLabel}</div><div class="stat-val">${escapeHtml(topFormation.name)}</div><div class="stat-sub">${Math.round(topFormation.count/formations.reduce((s,f)=>s+f.count,0)*100)}% of tagged snaps</div></div>`:''}
+      ${topCall?`<div class="stat-card"><div class="stat-label">${L.topCallStatLabel}</div><div class="stat-val">${escapeHtml(topCall.name)}</div><div class="stat-sub">${topCall.count} calls logged</div></div>`:''}
+      <div class="stat-card"><div class="stat-label">Sample size</div><div class="stat-val">${totalSnaps}</div><div class="stat-sub">${L.sampleStatLabel}</div></div>
+    </div>` : ''}
+
+    <div class="wk-block"><h4>${L.downChartTitle}</h4>
+      ${rp.length && totalSnaps ? `
+        ${rp.map(d=>stackedRow(typeof d.down==='number'?`${d.down}${d.down===1?'st':d.down===2?'nd':d.down===3?'rd':'th'} Down`:'No Down Logged', [
+          {value:d.run, color:'var(--rust)', name:L.kindA}, {value:d.pass, color:'var(--field)', name:L.kindB}
+        ])).join('')}
+        ${scoutLegend([{color:'var(--rust)',label:L.kindA},{color:'var(--field)',label:L.kindB}])}
+      ` : `<div class="helptext" style="margin-top:0;">No counts entered yet for this section${posKey&&state.adminMode?` — click Edit above to fill in ${L.kindA.toLowerCase()}/${L.kindB.toLowerCase()} numbers by down.`:'.'}</div>`}
+    </div>
+
+    ${formations.length ? `
+    <div class="wk-block"><h4>${L.formationsTitle}</h4>
+      ${barRows(formations, 'count', 'name', 'var(--rust)')}
+    </div>` : ''}
+
+    ${calls.length ? `
+    <div class="wk-block"><h4>${L.callsTitle}</h4>
+      ${calls.map(x=>`<div class="bar-row">
+        <div class="bar-label">${escapeHtml(x.name)}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(x.count/Math.max(1,...calls.map(y=>y.count))*100)}%;background:${x.kind===L.kindB?'var(--field)':'var(--rust)'};"></div></div>
+        <div class="bar-value">${x.count}</div>
+      </div>`).join('')}
+      ${scoutLegend([{color:'var(--rust)',label:L.kindALabel},{color:'var(--field)',label:L.kindBLabel}])}
+    </div>` : ''}
+
+    ${strengthDir.length ? `
+    <div class="wk-block"><h4>${L.strengthTitle}</h4>
+      ${strengthDir.map(x=>stackedRow(x.formation, [
+        {value:x.withStr, color:'var(--rust)', name:L.strengthALabel},
+        {value:x.middle, color:'var(--gold)', name:L.strengthBLabel},
+        {value:x.away, color:'var(--field)', name:L.strengthCLabel},
+      ])).join('')}
+      ${scoutLegend([{color:'var(--rust)',label:L.strengthALabel},{color:'var(--gold)',label:L.strengthBLabel},{color:'var(--field)',label:L.strengthCLabel}])}
+    </div>` : ''}
+
+    ${keyLines.length?`<div class="wk-block"><h4>${L.keysTitle}</h4><ul class="keys-list">${keyLines.map(k=>`<li>${linkifyText(k)}</li>`).join('')}</ul></div>`:''}
+
+    ${links.length?`<div class="wk-block"><h4>Cutups & docs</h4>${links.map(l=>`<a class="plink" href="${escapeAttr(l.url)}" target="_blank" rel="noopener">📄 ${escapeHtml(l.label||'Open')}</a>`).join('')}</div>`:''}
+    ${videos.length?`<div class="wk-block"><h4>Video</h4><div class="video-grid">${videos.map(v=>{
+      const em = embedUrlFor(v.url);
+      const player = em.kind==='video' ? `<video src="${escapeAttr(em.src)}" controls></video>` : `<iframe src="${escapeAttr(em.src)}" allowfullscreen></iframe>`;
+      return `<div class="video-box">${player}<div class="video-title">${escapeHtml(v.title||'Video')}</div></div>`;
+    }).join('')}</div></div>`:''}
+    ${c.notes?`<div class="wk-block"><h4>Coach notes</h4><p style="white-space:pre-wrap;">${linkifyText(c.notes)}</p></div>`:''}
+  </div>`;
+}
+
+
+function renderStandings(){
+  const st = state.standings;
+  const ourTeam = OUR_TEAM_NAME;
+  return `
+  <div class="section-head">
+    <h2>Standings</h2>
+    ${state.adminMode?`<button class="btn btn-ghost btn-small" onclick="openStandingsModal()">Edit manually</button>`:''}
+  </div>
+  ${st && st.teams && st.teams.length ? `
+    <p class="helptext" style="margin-top:-6px;">${st.divisionLabel?`Division ${escapeHtml(st.divisionLabel)} · `:''}${st.manual?'Entered by a coach':'Synced ' + timeAgo(st.updatedAt)}${st.sourceUrl?` · <a href="${escapeAttr(st.sourceUrl)}" target="_blank" rel="noopener" style="text-decoration:underline;">view source</a>`:''}</p>
+    <div style="overflow-x:auto;">
+    <table class="standings-table">
+      <thead><tr><th>#</th><th>Team</th><th>W</th><th>L</th><th>T</th><th>PCT</th><th>Streak</th><th>Coach</th></tr></thead>
+      <tbody>
+        ${st.teams.map((tm,i)=>`<tr class="${(tm.team||'').trim()===ourTeam?'us':''}">
+          <td>${i+1}</td>
+          <td>${escapeHtml(tm.team||'')}</td>
+          <td>${tm.w ?? ''}</td>
+          <td>${tm.l ?? ''}</td>
+          <td>${tm.t ?? ''}</td>
+          <td>${escapeHtml(tm.pct||'')}</td>
+          <td>${escapeHtml(tm.streak||'')}</td>
+          <td>${escapeHtml(tm.coach||'')}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    </div>
+  ` : `<div class="empty-state">No standings synced yet. ${state.adminMode?'Run the "Sync league standings & schedule" GitHub Action (Actions tab \u2192 Run workflow), or add standings manually below.':'Check back soon.'}</div>`}
+  `;
+}
+function timeAgo(ms){
+  if(!ms) return 'a while ago';
+  const mins = Math.round((Date.now()-ms)/60000);
+  if(mins < 1) return 'just now';
+  if(mins < 60) return mins+' min ago';
+  const hrs = Math.round(mins/60);
+  if(hrs < 24) return hrs+' hr ago';
+  const days = Math.round(hrs/24);
+  return days+' day'+(days===1?'':'s')+' ago';
+}
+
+/* ---------- LINKS PAGE ---------- */
+function renderLinks(){
+  return `
+  <div class="section-head">
+    <h2>League links</h2>
+    ${state.adminMode?`<button class="btn btn-gold btn-small" onclick="openLinksModal()">Edit links & record</button>`:''}
+  </div>
+  ${renderLinkCards()}
+  <div class="section-head"><h2 style="font-size:18px;">Record & standing</h2></div>
+  ${(() => {
+    const derived = deriveRecordAndStanding();
+    const recordDisplay = derived ? derived.record : (state.config.record || '—');
+    const standingDisplay = derived ? derived.standing : (state.config.standingText || '—');
+    return `<div class="card-grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr));">
+      <div class="link-card"><div class="lc-label">Record</div><div class="lc-title">${escapeHtml(recordDisplay)}</div></div>
+      <div class="link-card"><div class="lc-label">Standing</div><div class="lc-title" style="font-size:15px;text-transform:none;font-family:'Inter';font-weight:700;">${escapeHtml(standingDisplay)}</div></div>
+    </div>
+    <p class="helptext" style="margin-top:10px;">${derived
+      ? `Pulled automatically from the last sync of the <a href="javascript:void(0)" onclick="goTo('standings')" style="text-decoration:underline;">Standings page</a> — updates on its own whenever the league site is re-scraped.`
+      : `No synced standings yet, so this is showing the coach-entered fallback below. Once the league sync finds "${escapeHtml(OUR_TEAM_NAME)}" in the standings, this will switch to updating automatically.`}</p>`;
+  })()}
+  `;
+}
+
+/* ---------- MODAL ---------- */
+function renderModal(){
+  const m = state.modal;
+  if(m.type==='adminlogin') return renderAdminLoginModal();
+  if(m.type==='event') return renderEventModal();
+  if(m.type==='recurring') return renderRecurringModal();
+  if(m.type==='links') return renderLinksModal();
+  if(m.type==='content') return renderContentModal();
+  if(m.type==='scoutcontent') return renderScoutPostModal();
+  if(m.type==='standings') return renderStandingsModal();
+  return '';
+}
+function closeModal(){ state.modal=null; state.error=null; render(); }
+
+function renderAdminLoginModal(){
+  return `<div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+    <div class="modal rel">
+      <button class="close-x" onclick="closeModal()">✕</button>
+      <h3>Coach login</h3>
+      <form id="adminForm">
+        <div class="field-group"><label>Coach password</label><input name="password" type="password" required autofocus></div>
+        ${state.error?`<div class="gate-error">${escapeHtml(state.error)}</div>`:''}
+        <button class="btn btn-primary" type="submit">Unlock edit mode</button>
+      </form>
+    </div>
+  </div>`;
+}
+
+function renderEventModal(){
+  const p = state.modal.payload;
+  const isEdit = state.events.some(e=>e.id===p.id);
+  return `<div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+    <div class="modal rel">
+      <button class="close-x" onclick="closeModal()">✕</button>
+      <h3>${isEdit?'Edit':'Add'} calendar item</h3>
+      <form id="eventForm">
+        <div class="field-group"><label>Type</label>
+          <select name="type">
+            <option value="game" ${p.type==='game'?'selected':''}>Game</option>
+            <option value="practice" ${p.type==='practice'?'selected':''}>Practice</option>
+          </select>
+        </div>
+        <div class="two-col">
+          <div class="field-group"><label>Date</label><input name="date" type="date" value="${p.date}" required></div>
+          <div class="field-group"><label>Start time</label><input name="time" type="time" value="${p.time||''}"></div>
+        </div>
+        <div class="field-group"><label>End time (optional)</label><input name="endTime" type="time" value="${p.endTime||''}"></div>
+        <div class="field-group"><label>Opponent (games only)</label><input name="opponent" value="${escapeAttr(p.opponent||'')}" placeholder="Eagles"></div>
+        <div class="field-group"><label>Location</label><input name="location" value="${escapeAttr(p.location||'')}" placeholder="Home field / away address"></div>
+        <div class="field-group"><label>Notes</label><textarea name="notes">${escapeHtml(p.notes||'')}</textarea></div>
+        ${state.error?`<div class="gate-error">${escapeHtml(state.error)}</div>`:''}
+        <div class="modal-actions">
+          <button class="btn btn-primary" type="submit">Save to schedule</button>
+          <button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>`;
+}
+
+function renderRecurringModal(){
+  const p = state.modal.payload;
+  return `<div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+    <div class="modal rel" style="max-width:540px;">
+      <button class="close-x" onclick="closeModal()">✕</button>
+      <h3>Add recurring practices</h3>
+      <p class="helptext" style="margin-top:0;">Check off which days you practice, give each its own time, and this fills in every matching date in the range.</p>
+      <form id="recurringForm">
+        <div class="two-col">
+          <div class="field-group"><label>Start date</label><input name="startDate" type="date" value="${escapeAttr(p.startDate||'')}" required></div>
+          <div class="field-group"><label>Through date</label><input name="endDate" type="date" value="${escapeAttr(p.endDate||'')}" required></div>
+        </div>
+        <div class="field-group"><label>Days & times</label>
+          ${RECURRING_DAY_KEYS.map(key=>`
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+              <label style="display:flex;align-items:center;gap:6px;min-width:112px;font-weight:600;font-size:13px;color:var(--ink);text-transform:none;letter-spacing:0;">
+                <input type="checkbox" name="day_${key}" style="width:auto;"> ${RECURRING_DAY_LABELS[key]}
+              </label>
+              <input type="time" name="start_${key}" style="width:auto;flex:1;min-width:110px;">
+              <span style="color:var(--ink-soft);font-size:13px;">to</span>
+              <input type="time" name="end_${key}" style="width:auto;flex:1;min-width:110px;">
+            </div>
+          `).join('')}
+        </div>
+        <div class="field-group"><label>Location</label><input name="location" value="${escapeAttr(p.location||'')}" placeholder="Same field every practice?"></div>
+        <div class="field-group"><label>Notes</label><textarea name="notes" placeholder="Optional — shown on every practice this creates">${escapeHtml(p.notes||'')}</textarea></div>
+        ${state.error?`<div class="gate-error">${escapeHtml(state.error)}</div>`:''}
+        <div class="modal-actions">
+          <button class="btn btn-primary" type="submit">Add practices</button>
+          <button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>`;
+}
+
+function renderLinksModal(){
+  const p = state.modal.payload;
+  const L = p.links||{};
+  return `<div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+    <div class="modal rel">
+      <button class="close-x" onclick="closeModal()">✕</button>
+      <h3>Edit links & record</h3>
+      <form id="linksForm">
+        <div class="field-group"><label>Logo image URL</label><input name="logoUrl" value="${escapeAttr(p.logoUrl||'')}" placeholder="https://... link to your own logo image"></div>
+        <div class="field-group"><label>League rules URL</label><input name="rules" value="${escapeAttr(L.rules||'')}" placeholder="https://..."></div>
+        <div class="field-group"><label>League schedule URL</label><input name="schedule" value="${escapeAttr(L.schedule||'')}" placeholder="https://..."></div>
+        <div class="field-group"><label>Hudl URL</label><input name="hudl" value="${escapeAttr(L.hudl||'')}" placeholder="https://..."></div>
+        <div class="field-group"><label>League standings page URL</label><input name="standings" value="${escapeAttr(L.standings||'')}" placeholder="https://..."></div>
+        <div class="two-col">
+          <div class="field-group"><label>Offense Playbook URL</label><input name="offensePlaybook" value="${escapeAttr(L.offensePlaybook||'')}" placeholder="https://..."></div>
+          <div class="field-group"><label>Defense Playbook URL</label><input name="defensePlaybook" value="${escapeAttr(L.defensePlaybook||'')}" placeholder="https://..."></div>
+        </div>
+        <div class="two-col">
+          <div class="field-group"><label>Our record</label><input name="record" value="${escapeAttr(p.record||'')}" placeholder="4-1"></div>
+          <div class="field-group"><label>Our standing</label><input name="standingText" value="${escapeAttr(p.standingText||'')}" placeholder="2nd in division"></div>
+        </div>
+        ${state.error?`<div class="gate-error">${escapeHtml(state.error)}</div>`:''}
+        <div class="modal-actions">
+          <button class="btn btn-primary" type="submit">Save</button>
+          <button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>`;
+}
+
+function renderStandingsModal(){
+  const p = state.modal.payload;
+  return `<div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+    <div class="modal rel">
+      <button class="close-x" onclick="closeModal()">✕</button>
+      <h3>Edit standings manually</h3>
+      <p class="helptext" style="margin-top:0;">One team per line: <code>Team Name, Wins, Losses, Ties</code></p>
+      <form id="standingsForm">
+        <div class="field-group"><textarea name="rows" style="min-height:220px;font-family:'Space Mono',monospace;font-size:13px;" placeholder="WL Moore, 3, 1, 0
+AF Ault, 2, 2, 0">${escapeHtml(p.text||'')}</textarea></div>
+        ${state.error?`<div class="gate-error">${escapeHtml(state.error)}</div>`:''}
+        <div class="modal-actions">
+          <button class="btn btn-primary" type="submit">Save standings</button>
+          <button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>`;
+}
+
+function renderContentModal(){
+  const p = state.modal.payload;
+  const meta = POSITIONS[state.modal.posKey];
+  return `<div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+    <div class="modal rel" style="max-width:640px;">
+      <button class="close-x" onclick="closeModal()">✕</button>
+      <h3>${meta.label}: weekly update</h3>
+      <form id="contentForm">
+        <div class="field-group"><label>Week label</label><input name="weekOf" value="${escapeAttr(p.weekOf||'')}" placeholder="Week 5 — vs Eagles" required></div>
+        <div class="field-group"><label style="display:flex;align-items:center;gap:8px;font-weight:600;text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink);">
+          <input type="checkbox" name="makeCurrent" ${p.makeCurrent?'checked':''} style="width:auto;"> Show as the current week (on Home & top of this page)
+        </label></div>
+        <div class="helptext" style="margin-top:-4px;">Leave this unchecked to add a past week's post without changing what's currently featured.</div>
+        <div class="field-group"><label>Lineup / weekly notes</label><textarea name="lineup" placeholder="Starting lineup, position changes, reminders...">${escapeHtml(p.lineup||'')}</textarea></div>
+        <div class="field-group"><label>Drills</label><textarea name="drills" placeholder="One per line works great">${escapeHtml(p.drills||'')}</textarea></div>
+
+        <div class="field-group"><label>Playbook / doc links</label>
+        <div id="linkRows">
+          ${p.playbookLinks.map((l,i)=>`
+            <div class="repeat-row">
+              <input placeholder="Label (e.g. Playbook PDF)" value="${escapeAttr(l.label)}" oninput="updateRow('playbookLinks',${i},'label',this.value)">
+              <input placeholder="https://..." value="${escapeAttr(l.url)}" oninput="updateRow('playbookLinks',${i},'url',this.value)">
+              <span></span>
+            </div>`).join('')}
+        </div>
+        <button type="button" class="add-row-btn" onclick="addRow('playbookLinks')">+ Add another link</button>
+        </div>
+
+        <div class="field-group" style="margin-top:14px;"><label>Video links (YouTube, Vimeo, Loom, Hudl, Drive, or direct .mp4)</label>
+        <div id="videoRows">
+          ${p.videos.map((v,i)=>`
+            <div class="repeat-row">
+              <input placeholder="Title (e.g. Coach Moore's message)" value="${escapeAttr(v.title)}" oninput="updateRow('videos',${i},'title',this.value)">
+              <input placeholder="https://..." value="${escapeAttr(v.url)}" oninput="updateRow('videos',${i},'url',this.value)">
+              <span></span>
+            </div>`).join('')}
+        </div>
+        <button type="button" class="add-row-btn" onclick="addRow('videos')">+ Add another video</button>
+        <div class="helptext">If a player's parental controls block YouTube entirely, the embed will be blocked too — Vimeo, Loom, or a Google Drive share link usually gets through instead.</div>
+        </div>
+
+        <div class="field-group" style="margin-top:14px;"><label>Photos</label>
+        <div id="imageRows">
+          ${p.images.map((im,i)=>`
+            <div class="repeat-row">
+              <input placeholder="Caption (optional)" value="${escapeAttr(im.caption||'')}" oninput="updateRow('images',${i},'caption',this.value)">
+              <input placeholder="https://... link to the image" value="${escapeAttr(im.url)}" oninput="updateRow('images',${i},'url',this.value)">
+              <span></span>
+            </div>`).join('')}
+        </div>
+        <button type="button" class="add-row-btn" onclick="addRow('images')">+ Add another photo</button>
+        <div class="helptext">Paste a link to a photo you've already uploaded somewhere (Google Photos share link, Drive, Imgur, etc.) — there's no file upload here, just a link.</div>
+        </div>
+
+        <div class="field-group"><label>Coach notes</label><textarea name="notes" placeholder="Anything else the team should know">${escapeHtml(p.notes||'')}</textarea></div>
+
+        ${state.error?`<div class="gate-error">${escapeHtml(state.error)}</div>`:''}
+        <div class="modal-actions">
+          <button class="btn btn-primary" type="submit">Save post</button>
+          <button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>`;
+}
+
+function renderScoutPostModal(){
+  const p = state.modal.payload;
+  const meta = SCOUT_UNITS[state.modal.posKey==='scoutingDefense'?'defense':'offense'];
+  const L = scoutLabelsFor(state.modal.posKey);
+  return `<div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+    <div class="modal rel" style="max-width:680px;">
+      <button class="close-x" onclick="closeModal()">✕</button>
+      <h3>${meta.label}: scouting report</h3>
+      <form id="scoutContentForm">
+        <div class="two-col">
+          <div class="field-group"><label>Week label</label><input name="weekOf" value="${escapeAttr(p.weekOf||'')}" placeholder="Week 3 — vs Lehi Dalley" required></div>
+          <div class="field-group"><label>Opponent</label><input name="opponent" value="${escapeAttr(p.opponent||'')}" placeholder="Lehi Dalley"></div>
+        </div>
+        <div class="field-group"><label style="display:flex;align-items:center;gap:8px;font-weight:600;text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink);">
+          <input type="checkbox" name="makeCurrent" ${p.makeCurrent?'checked':''} style="width:auto;"> Show as the current week's report
+        </label></div>
+        <div class="helptext" style="margin-top:-4px;">Leave this unchecked to backfill a past opponent without changing what's currently featured.</div>
+
+        <div class="field-group"><label>Summary</label><textarea name="summary" placeholder="A few sentences on what stood out">${escapeHtml(p.summary||'')}</textarea></div>
+
+        <div class="field-group"><label>${L.downChartTitle}</label>
+          <div class="helptext" style="margin-top:0;">${L.downChartHelp}</div>
+          <div class="rp-grid">
+            <div class="rp-head"></div><div class="rp-head">${L.downCountLabelA}</div><div class="rp-head">${L.downCountLabelB}</div>
+            ${p.runPassByDown.map(d=>`
+              <div class="rp-down">${typeof d.down==='number'?`${d.down}${d.down===1?'st':d.down===2?'nd':d.down===3?'rd':'th'} down`:'No down logged'}</div>
+              <input type="number" min="0" name="rp_${d.down}_run" value="${d.run||0}">
+              <input type="number" min="0" name="rp_${d.down}_pass" value="${d.pass||0}">
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="field-group"><label>${L.formationsTitle}</label>
+        <div class="helptext" style="margin-top:0;">${L.formationsHelp}</div>
+        <div id="formationRows">
+          ${p.formations.map((x,i)=>`
+            <div class="repeat-row">
+              <input placeholder="${escapeAttr(L.formationsNamePh)}" value="${escapeAttr(x.name)}" oninput="updateScoutRow('formations',${i},'name',this.value)">
+              <input type="number" min="0" placeholder="${escapeAttr(L.formationsCountPh)}" value="${escapeAttr(x.count)}" oninput="updateScoutRow('formations',${i},'count',this.value)">
+              <span></span>
+            </div>`).join('')}
+        </div>
+        <button type="button" class="add-row-btn" onclick="addScoutRow('formations')">+ Add another</button>
+        </div>
+
+        <div class="field-group" style="margin-top:14px;"><label>${L.callsTitle}</label>
+        <div class="helptext" style="margin-top:0;">${L.callsHelp}</div>
+        <div id="callRows">
+          ${p.calls.map((x,i)=>`
+            <div class="repeat-row" style="grid-template-columns:1fr 90px 130px;">
+              <input placeholder="${escapeAttr(L.callsNamePh)}" value="${escapeAttr(x.name)}" oninput="updateScoutRow('calls',${i},'name',this.value)">
+              <input type="number" min="0" placeholder="Count" value="${escapeAttr(x.count)}" oninput="updateScoutRow('calls',${i},'count',this.value)">
+              <select onchange="updateScoutRow('calls',${i},'kind',this.value)">
+                <option value="${escapeAttr(L.kindA)}" ${x.kind!==L.kindB?'selected':''}>${escapeHtml(L.kindA)}</option>
+                <option value="${escapeAttr(L.kindB)}" ${x.kind===L.kindB?'selected':''}>${escapeHtml(L.kindB)}</option>
+              </select>
+            </div>`).join('')}
+        </div>
+        <button type="button" class="add-row-btn" onclick="addScoutRow('calls')">+ Add another</button>
+        </div>
+
+        <div class="field-group" style="margin-top:14px;"><label>${L.strengthTitle}</label>
+        <div class="helptext" style="margin-top:0;">${L.strengthHelp}</div>
+        <div id="strengthDirRows">
+          ${p.strengthDir.map((x,i)=>`
+            <div class="repeat-row" style="grid-template-columns:1.4fr 0.8fr 0.8fr 0.8fr;">
+              <input placeholder="${escapeAttr(L.strengthGroupPh)}" value="${escapeAttr(x.formation)}" oninput="updateScoutRow('strengthDir',${i},'formation',this.value)">
+              <input type="number" min="0" placeholder="${escapeAttr(L.strengthAPh)}" value="${escapeAttr(x.withStr)}" oninput="updateScoutRow('strengthDir',${i},'withStr',this.value)">
+              <input type="number" min="0" placeholder="${escapeAttr(L.strengthBPh)}" value="${escapeAttr(x.middle)}" oninput="updateScoutRow('strengthDir',${i},'middle',this.value)">
+              <input type="number" min="0" placeholder="${escapeAttr(L.strengthCPh)}" value="${escapeAttr(x.away)}" oninput="updateScoutRow('strengthDir',${i},'away',this.value)">
+            </div>`).join('')}
+        </div>
+        <button type="button" class="add-row-btn" onclick="addScoutRow('strengthDir')">+ Add another</button>
+        </div>
+
+        <div class="field-group" style="margin-top:14px;"><label>${L.keysTitle}</label><textarea name="keys" placeholder="${escapeAttr(L.keysPh)}" style="min-height:110px;">${escapeHtml(p.keys||'')}</textarea></div>
+
+        <div class="field-group"><label>Cutup / doc links</label>
+        <div id="scoutLinkRows">
+          ${p.playbookLinks.map((l,i)=>`
+            <div class="repeat-row">
+              <input placeholder="Label (e.g. Hudl cutup)" value="${escapeAttr(l.label)}" oninput="updateScoutRow('playbookLinks',${i},'label',this.value)">
+              <input placeholder="https://..." value="${escapeAttr(l.url)}" oninput="updateScoutRow('playbookLinks',${i},'url',this.value)">
+              <span></span>
+            </div>`).join('')}
+        </div>
+        <button type="button" class="add-row-btn" onclick="addScoutRow('playbookLinks')">+ Add another link</button>
+        </div>
+
+        <div class="field-group" style="margin-top:14px;"><label>Video links</label>
+        <div id="scoutVideoRows">
+          ${p.videos.map((v,i)=>`
+            <div class="repeat-row">
+              <input placeholder="Title" value="${escapeAttr(v.title)}" oninput="updateScoutRow('videos',${i},'title',this.value)">
+              <input placeholder="https://..." value="${escapeAttr(v.url)}" oninput="updateScoutRow('videos',${i},'url',this.value)">
+              <span></span>
+            </div>`).join('')}
+        </div>
+        <button type="button" class="add-row-btn" onclick="addScoutRow('videos')">+ Add another video</button>
+        </div>
+
+        <div class="field-group"><label>Coach notes</label><textarea name="notes" placeholder="Sample size caveats, source, anything else">${escapeHtml(p.notes||'')}</textarea></div>
+
+        ${state.error?`<div class="gate-error">${escapeHtml(state.error)}</div>`:''}
+        <div class="modal-actions">
+          <button class="btn btn-primary" type="submit">Save report</button>
+          <button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>`;
+}
+
+
+function attachGlobalHandlers(){
+  const ef = document.getElementById('eventForm'); if(ef) ef.addEventListener('submit', submitEvent);
+  const rf = document.getElementById('recurringForm'); if(rf) rf.addEventListener('submit', submitRecurring);
+  const af = document.getElementById('adminForm'); if(af) af.addEventListener('submit', submitAdminLogin);
+  const lf = document.getElementById('linksForm'); if(lf) lf.addEventListener('submit', submitLinks);
+  const cf = document.getElementById('contentForm'); if(cf) cf.addEventListener('submit', submitContent);
+  const scf = document.getElementById('scoutContentForm'); if(scf) scf.addEventListener('submit', submitScoutPost);
+  const sf = document.getElementById('standingsForm'); if(sf) sf.addEventListener('submit', submitStandings);
+}
+
+/* ============================ UTIL ============================ */
+function escapeHtml(str){
+  if(str===undefined||str===null) return '';
+  return String(str).replace(/[&<>"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+function escapeAttr(str){ return escapeHtml(str); }
+
+// Turns plain-text URLs typed into a post (lineup, drills, notes, etc.) into
+// real clickable links. Escapes everything else, so this is safe to use
+// anywhere escapeHtml() was used on free-text — just swap the call.
+function linkifyText(raw){
+  if(raw===undefined||raw===null||raw==='') return '';
+  const text = String(raw);
+  const urlRe = /(https?:\/\/[^\s<>"')\]]+|www\.[^\s<>"')\]]+)/gi;
+  let out = '';
+  let lastIndex = 0;
+  let m;
+  while((m = urlRe.exec(text))){
+    out += escapeHtml(text.slice(lastIndex, m.index));
+    let url = m[0];
+    // Strip common trailing punctuation that's usually sentence punctuation,
+    // not part of the link (e.g. "check the playbook: https://x.com/doc.")
+    let trailing = '';
+    const trailMatch = url.match(/[.,;:!?]+$/);
+    if(trailMatch){
+      trailing = trailMatch[0];
+      url = url.slice(0, url.length - trailing.length);
+    }
+    if(!url){ out += escapeHtml(m[0]); lastIndex = urlRe.lastIndex; continue; }
+    const href = /^www\./i.test(url) ? 'https://'+url : url;
+    out += `<a href="${escapeAttr(href)}" target="_blank" rel="noopener" style="color:var(--rust);text-decoration:underline;word-break:break-all;">${escapeHtml(url)}</a>`;
+    out += escapeHtml(trailing);
+    lastIndex = urlRe.lastIndex;
+  }
+  out += escapeHtml(text.slice(lastIndex));
+  return out;
+}
+</script>
+</body>
+</html>
