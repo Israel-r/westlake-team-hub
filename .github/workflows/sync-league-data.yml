@@ -1,8 +1,10 @@
-name: Sync league standings & schedule
+name: Sync league standings, schedule & results
 
 on:
+  # Runs automatically every day.
   schedule:
     - cron: '0 13 * * *'   # 13:00 UTC ≈ 6-7am Mountain time, adjust as you like
+  # Lets you trigger it manually: repo → Actions tab → this workflow → "Run workflow".
   workflow_dispatch: {}
 
 jobs:
