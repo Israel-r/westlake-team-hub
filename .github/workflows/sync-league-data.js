@@ -78,6 +78,15 @@ async function main() {
   });
   console.log('Wrote game-results to Firestore.');
 
+  const fullSchedule = parseFullSchedule($);
+  console.log(`Parsed ${fullSchedule.length} total scheduled games across the division (played + unplayed).`);
+  await writeDoc('league-schedule', {
+    sourceUrl: SOURCE_URL,
+    updatedAt: Date.now(),
+    games: fullSchedule,
+  });
+  console.log('Wrote league-schedule to Firestore.');
+
   console.log('Done.');
 }
 
@@ -272,6 +281,71 @@ function parseAllResults($) {
     break; // stop after the first matching table
   }
   return results;
+}
+
+// Reads the same schedule table as parseAllResults(), but keeps EVERY game —
+// played or not — with null scores for games that haven't happened yet.
+// This is what the Predictions tab uses to know who's still left to play,
+// for the rest-of-season projection.
+function parseFullSchedule($) {
+  const games = [];
+  const tables = $('table').toArray();
+  for (const table of tables) {
+    const $table = $(table);
+    const headerCells = $table
+      .find('tr')
+      .first()
+      .find('th,td')
+      .map((_, c) => $(c).text().trim().toLowerCase())
+      .get();
+    const looksLikeSchedule =
+      headerCells.includes('date') &&
+      (headerCells.includes('away') || headerCells.includes('home') || headerCells.includes('game'));
+    if (!looksLikeSchedule) continue;
+
+    let currentWeek = '';
+    $table
+      .find('tr')
+      .slice(1)
+      .each((_, tr) => {
+        const cells = $(tr)
+          .find('td')
+          .map((__, c) => $(c).text().trim())
+          .get();
+        if (cells.length === 0) return;
+        if (cells.length <= 2 && /week/i.test(cells[0] || '')) {
+          currentWeek = cells[0];
+          return;
+        }
+        const [dateStr, timeStr, ...rest] = cells;
+        if (!dateStr || /week/i.test(dateStr)) return;
+
+        let awayCell, homeCell;
+        if (headerCells.includes('away') && headerCells.includes('home')) {
+          [awayCell, homeCell] = rest;
+        } else {
+          const parts = rest.join(' ').split(/\s{2,}/).filter(Boolean);
+          awayCell = parts[0] || '';
+          homeCell = parts[1] || '';
+        }
+
+        const away = splitNameScore(awayCell);
+        const home = splitNameScore(homeCell);
+        if (!away || !home || !away.name || !home.name) return;
+
+        games.push({
+          id: `sched_${slug(away.name)}_vs_${slug(home.name)}_${dateStr}`.replace(/\s+/g, '_'),
+          teamA: away.name,
+          teamB: home.name,
+          scoreA: away.score,   // null if not played yet
+          scoreB: home.score,   // null if not played yet
+          date: parseDateStr(dateStr) || '',
+          week: currentWeek || dateStr,
+        });
+      });
+    break; // stop after the first matching table
+  }
+  return games;
 }
 
 // "WL Moore   20" -> { name: "WL Moore", score: 20 }
