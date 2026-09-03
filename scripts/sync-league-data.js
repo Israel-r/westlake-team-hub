@@ -1,13 +1,21 @@
 /**
- * Pulls standings + WL Moore's games from the UYFC division page and writes
- * them into the same Firestore database the team-hub site reads from live.
+ * Pulls standings, WL Moore's games, and every completed result across the
+ * whole division from the UYFC division page, and writes all three into the
+ * same Firestore database the team-hub site reads from live:
+ *   - 'standings'    -> full division table (Standings tab)
+ *   - 'auto-games'   -> WL Moore's own schedule (Calendar tab)
+ *   - 'game-results' -> every completed game across the division, with final
+ *                       scores (Predictions tab — this is new)
  *
- * Run manually: repo → Actions tab → "Sync league standings & schedule" →
- * "Run workflow". It also runs automatically on the schedule in the workflow
- * file (.github/workflows/sync-league-data.yml).
+ * Run manually: repo → Actions tab → "Sync league standings, schedule &
+ * results" → "Run workflow". It also runs automatically on the schedule in
+ * the workflow file (.github/workflows/sync-league-data.yml).
  *
  * If the league page's layout changes and this stops finding rows, this file
- * is the one to fix — see parseStandings() and parseSchedule() below.
+ * is the one to fix — see parseStandings(), parseSchedule(), and
+ * parseAllResults() below. All three read the same schedule table, so if one
+ * breaks the others likely will too — that's usually the fastest place to
+ * start debugging.
  */
 
 const cheerio = require('cheerio');
@@ -34,13 +42,17 @@ async function main() {
 
   const standings = parseStandings($);
   const games = parseSchedule($, OUR_TEAM);
+  const results = parseAllResults($);
 
-  console.log(`Parsed ${standings.length} standings rows and ${games.length} games for "${OUR_TEAM}".`);
+  console.log(`Parsed ${standings.length} standings rows, ${games.length} games for "${OUR_TEAM}", and ${results.length} completed league results.`);
   if (standings.length === 0) {
     console.warn('WARNING: no standings rows found. The page layout may have changed — check parseStandings().');
   }
   if (games.length === 0) {
     console.warn(`WARNING: no games found for "${OUR_TEAM}". Check OUR_TEAM spelling matches the league page exactly.`);
+  }
+  if (results.length === 0) {
+    console.warn('WARNING: no completed results found. Either it\'s week 1 with nothing played yet, or the page layout changed — check parseAllResults().');
   }
 
   await writeDoc('standings', {
@@ -58,6 +70,13 @@ async function main() {
     games,
   });
   console.log('Wrote auto-games to Firestore.');
+
+  await writeDoc('game-results', {
+    sourceUrl: SOURCE_URL,
+    updatedAt: Date.now(),
+    games: results,
+  });
+  console.log('Wrote game-results to Firestore.');
 
   console.log('Done.');
 }
@@ -146,7 +165,7 @@ function parseSchedule($, ourTeam) {
           .map((__, c) => $(c).text().trim())
           .get();
         if (cells.length === 0) return;
-        if (/week/i.test(cells[0] || '') && cells.slice(1).every((c) => !c)) {
+        if (cells.length <= 2 && /week/i.test(cells[0] || '')) {
           currentWeek = cells[0];
           return;
         }
@@ -163,6 +182,11 @@ function parseSchedule($, ourTeam) {
           home = parts[1] || '';
           location = parts[2] || '';
         }
+        // Cells may have a trailing score once the game's been played
+        // (e.g. "WL Moore   20") — strip that off for the schedule view,
+        // parseAllResults() below is what captures the score itself.
+        away = stripScore(away);
+        home = stripScore(home);
         if (away !== ourTeam && home !== ourTeam) return;
 
         const opponent = away === ourTeam ? home : away;
@@ -183,6 +207,85 @@ function parseSchedule($, ourTeam) {
     break; // stop after the first matching table
   }
   return games;
+}
+
+// Reads the SAME schedule table as parseSchedule(), but for every game in the
+// division rather than just OUR_TEAM's, and keeps the score instead of
+// discarding it. Only rows where BOTH teams have a final score are counted
+// as a completed result — future/unplayed games are naturally skipped since
+// their cells have no trailing number yet.
+function parseAllResults($) {
+  const results = [];
+  const tables = $('table').toArray();
+  for (const table of tables) {
+    const $table = $(table);
+    const headerCells = $table
+      .find('tr')
+      .first()
+      .find('th,td')
+      .map((_, c) => $(c).text().trim().toLowerCase())
+      .get();
+    const looksLikeSchedule =
+      headerCells.includes('date') &&
+      (headerCells.includes('away') || headerCells.includes('home') || headerCells.includes('game'));
+    if (!looksLikeSchedule) continue;
+
+    let currentWeek = '';
+    $table
+      .find('tr')
+      .slice(1)
+      .each((_, tr) => {
+        const cells = $(tr)
+          .find('td')
+          .map((__, c) => $(c).text().trim())
+          .get();
+        if (cells.length === 0) return;
+        if (cells.length <= 2 && /week/i.test(cells[0] || '')) {
+          currentWeek = cells[0];
+          return;
+        }
+        const [dateStr, timeStr, ...rest] = cells;
+        if (!dateStr || /week/i.test(dateStr)) return;
+
+        let awayCell, homeCell;
+        if (headerCells.includes('away') && headerCells.includes('home')) {
+          [awayCell, homeCell] = rest;
+        } else {
+          const parts = rest.join(' ').split(/\s{2,}/).filter(Boolean);
+          awayCell = parts[0] || '';
+          homeCell = parts[1] || '';
+        }
+
+        const away = splitNameScore(awayCell);
+        const home = splitNameScore(homeCell);
+        if (!away || !home || away.score == null || home.score == null) return; // not played yet
+
+        results.push({
+          id: `result_${slug(away.name)}_vs_${slug(home.name)}_${dateStr}`.replace(/\s+/g, '_'),
+          teamA: away.name,
+          scoreA: away.score,
+          teamB: home.name,
+          scoreB: home.score,
+          label: currentWeek || dateStr,
+        });
+      });
+    break; // stop after the first matching table
+  }
+  return results;
+}
+
+// "WL Moore   20" -> { name: "WL Moore", score: 20 }
+// "LH Darling" (no score yet)      -> { name: "LH Darling", score: null }
+function splitNameScore(cellText) {
+  if (!cellText) return null;
+  const collapsed = cellText.replace(/\s+/g, ' ').trim();
+  const m = collapsed.match(/^(.*\S)\s+(\d+)$/);
+  if (m) return { name: m[1].trim(), score: parseInt(m[2], 10) };
+  return { name: collapsed, score: null };
+}
+function stripScore(cellText) {
+  const parsed = splitNameScore(cellText || '');
+  return parsed ? parsed.name : (cellText || '');
 }
 
 function toInt(v) {
@@ -247,12 +350,7 @@ function toFirestoreValue(v) {
   return { stringValue: String(v) };
 }
 
-if (require.main === module) {
-  main().catch((err) => {
-    console.error(err);
-    process.exit(1);
-  });
-} else {
-  module.exports = { parseStandings, parseSchedule, parseDateStr, normalizeTime, extractDivisionLabel };
-}
-
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
